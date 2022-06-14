@@ -1,5 +1,7 @@
 use std::ops::{Add, Sub, Neg, Div, Mul};
 use std::cmp::PartialEq;
+use std::f32;
+use approx::{RelativeEq, AbsDiffEq};
 
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -98,18 +100,50 @@ impl Div<f32> for Tuple {
     }
 }
 
+impl AbsDiffEq for Tuple {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        f32::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        f32::abs_diff_eq(&self.x, &other.x, epsilon) &&
+        f32::abs_diff_eq(&self.y, &other.z, epsilon) &&
+        f32::abs_diff_eq(&self.z, &other.z, epsilon) &&
+        f32::abs_diff_eq(&self.w, &other.w, epsilon)
+    }
+}
+
+impl RelativeEq for Tuple {
+
+    fn default_max_relative() -> f32 {
+        f32::default_max_relative()
+    }
+
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        println!("epsilon: {}, max_relative: {}", epsilon, max_relative);
+        println!("diff: {}", &self.z - &other.z);
+        f32::relative_eq(&self.x, &other.x, epsilon, max_relative) &&
+        f32::relative_eq(&self.y, &other.y, epsilon, max_relative) &&
+        f32::relative_eq(&self.z, &other.z, epsilon, max_relative) &&
+        f32::relative_eq(&self.w, &other.w, epsilon, max_relative)
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use crate::tuple::Tuple;
 
     #[test]
     fn addition() {
-        let t1 = Tuple {x: 3.0, y: -2.0, z: 5.0, w: 1.0 };
-        let t2 = Tuple {x: -2.0, y: 3.0, z: 1.0, w: 0.0 };
+        let t1 = Tuple {x: 3.0, y: -2.0, z: 5.2, w: 1.0 };
+        let t2 = Tuple {x: -2.0, y: 3.0, z: 1.1, w: 0.0 };
 
-        let t3 = t2 + t1;
-
-        assert_eq!(&t3, &Tuple {x: 1.0, y: 1.0, z: 6.0, w: 1.0 });
+        let t = Tuple {x: 1.0, y: 1.0, z: 6.3, w: 1.0 };
+        
+        approx::assert_relative_eq!(&(t2 + t1), &t);
     }
 
     #[test]
@@ -117,9 +151,9 @@ mod tests {
         let t1 = Tuple {x: 1.0, y: 2.0, z: 3.0, w: 1.0 };
         let t2 = Tuple {x: 8.0, y: 3.0, z: 5.0, w: 4.0 };
 
-        let t3 = t2 - t1;
+        let t = Tuple {x: 7.0, y: 1.0, z: 2.0, w: 3.0 };
 
-        assert_eq!(&t3, &Tuple {x: 7.0, y: 1.0, z: 2.0, w: 3.0 })
+        approx::assert_relative_eq!(&(t2 - t1), &t)
     }
 
     #[test]
@@ -127,6 +161,6 @@ mod tests {
         let t1 = Tuple {x: 1.0, y: 2.0, z: 3.0, w: 1.0 };
         let t2 = Tuple {x: -1.0, y: -2.0, z: -3.0, w: -1.0 };
 
-        assert_eq!(&-t1, &t2)
+        approx::assert_relative_eq!(&-t1, &t2)
     }
 }

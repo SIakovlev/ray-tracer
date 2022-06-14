@@ -64,6 +64,7 @@ impl Div<f32> for Vector {
 }
 
 
+#[cfg(test)]
 mod tests {
     use crate::tuple::Tuple;
     use crate::vector::Vector;

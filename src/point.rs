@@ -46,6 +46,7 @@ impl Sub<Vector> for Point {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::tuple::Tuple;
     use crate::point::Point;
