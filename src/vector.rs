@@ -1,5 +1,5 @@
 use crate::tuple::Tuple;
-use std::ops::{Add, Sub, Div};
+use std::ops::{Add, Sub, Div, Mul};
 
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -60,6 +60,14 @@ impl Div<f32> for Vector {
 
     fn div(self, rhs: f32) -> Self::Output {
         Vector { tuple: self.tuple / rhs }
+    }
+}
+
+impl Mul<f32> for Vector {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Vector { tuple: self.tuple * rhs }
     }
 }
 

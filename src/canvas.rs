@@ -1,6 +1,6 @@
-use std::{iter::Enumerate, sync::Arc};
-
 use crate::color::Color;
+use std::fs::File;
+use std::io::Write;
 
 const MAX_PPM_LINE_WIDTH: usize = 70;
 
@@ -11,7 +11,7 @@ pub struct Canvas {
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         let pixels = vec![Color::new(0.0, 0.0, 0.0); width * height];
 
         Canvas { 
@@ -21,15 +21,16 @@ impl Canvas {
         }
     }
 
-    fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
+    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
+        assert!(y < self.height && x < self.width, "Provided values x: {}, y: {}", x, y);
         self.pixels[self.width * y + x] = color;
     }
 
-    fn pixel_at(&self, x: usize, y: usize) -> Color {
+    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[self.width * y + x]
     }
 
-    fn to_ppm(&self, max_color_value: u32) {
+    pub fn to_ppm(&self, max_color_value: u32, path: &str) {
         // Construct header 
         let mut ppm_data = format!("P3\n{} {}\n{}\n", self.width, self.height, max_color_value);
         
@@ -59,6 +60,13 @@ impl Canvas {
         
         #[cfg(debug_assertions)]
         println!("{}", &ppm_data);
+
+        let mut output = match File::create(&path) {
+            Err(e) => panic!("Couldn't open {}. Error msg: {}", &path, &e),
+            Ok(file) => file,
+        };
+        write!(output, "{}", &ppm_data).expect("Couldn't write to the file");
+
     }
 
 }
@@ -99,7 +107,7 @@ mod tests {
         c.write_pixel(2, 1, c2);
         c.write_pixel(4, 2, c3);
 
-        c.to_ppm(255);
+        c.to_ppm(255, "test.ppm");
 
     }
 
@@ -112,7 +120,7 @@ mod tests {
             *pixel = c1;
         }
 
-        c.to_ppm(255);
+        c.to_ppm(255, "test.ppm");
 
     }
 
