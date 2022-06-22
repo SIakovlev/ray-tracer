@@ -17,6 +17,10 @@ impl Tuple {
         Tuple{ x, y, z, w }
     }
 
+    pub fn from_array(arr: [f32; 4]) -> Self {
+        Tuple{ x: arr[0], y: arr[1], z: arr[2], w: arr[3] }
+    }
+
     pub fn dot(&self, rhs: Tuple) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
@@ -131,6 +135,38 @@ impl RelativeEq for Tuple {
     }
 }
 
+pub struct TupleIntoIterator {
+    tuple: Tuple,
+    index: usize,
+}
+
+impl IntoIterator for Tuple {
+    type Item = f32;
+    type IntoIter = TupleIntoIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TupleIntoIterator {
+            tuple: self,
+            index: 0,
+        }
+    }
+}
+
+impl Iterator for TupleIntoIterator {
+    type Item = f32;
+    fn next(&mut self) -> Option<f32> {
+        let result = match self.index {
+            0 => self.tuple.x,
+            1 => self.tuple.y,
+            2 => self.tuple.z,
+            3 => self.tuple.w,
+            _ => return None,
+        };
+        self.index += 1;
+        Some(result)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -162,5 +198,13 @@ mod tests {
         let t2 = Tuple {x: -1.0, y: -2.0, z: -3.0, w: -1.0 };
 
         approx::assert_relative_eq!(&-t1, &t2)
+    }
+
+    #[test]
+    fn iteration() {
+        let t1 = Tuple {x: 1.0, y: 2.0, z: 3.0, w: 1.0 };
+        for elem in t1.into_iter() {
+            println!("{}", &elem)
+        }
     }
 }
