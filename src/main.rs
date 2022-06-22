@@ -1,3 +1,5 @@
+#![feature(adt_const_params, generic_const_exprs)]
+
 mod tuple;
 mod point;
 mod vector;
