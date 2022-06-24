@@ -1,6 +1,7 @@
 use crate::tuple::Tuple;
 use crate::vector::Vector;
 use std::ops::{Add, Sub};
+use approx::{AbsDiffEq, RelativeEq};
 
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -12,6 +13,12 @@ impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { 
             tuple: Tuple::new(x, y, z, 1.0) 
+        }
+    }
+
+    pub fn from_tuple(tuple: Tuple) -> Self {
+        Self { 
+            tuple: tuple
         }
     }
 }
@@ -43,6 +50,35 @@ impl Sub<Vector> for Point {
     fn sub(self, rhs: Vector) -> Self::Output {
         let t = self.tuple - rhs.tuple;
         Point {tuple: t}
+    }
+}
+
+impl AbsDiffEq for Point {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        f32::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        f32::abs_diff_eq(&self.tuple.x, &other.tuple.x, epsilon) &&
+        f32::abs_diff_eq(&self.tuple.y, &other.tuple.z, epsilon) &&
+        f32::abs_diff_eq(&self.tuple.z, &other.tuple.z, epsilon) &&
+        f32::abs_diff_eq(&self.tuple.w, &other.tuple.w, epsilon)
+    }
+}
+
+impl RelativeEq for Point {
+
+    fn default_max_relative() -> f32 {
+        f32::default_max_relative()
+    }
+
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        f32::relative_eq(&self.tuple.x, &other.tuple.x, epsilon, max_relative) &&
+        f32::relative_eq(&self.tuple.y, &other.tuple.y, epsilon, max_relative) &&
+        f32::relative_eq(&self.tuple.z, &other.tuple.z, epsilon, max_relative) &&
+        f32::relative_eq(&self.tuple.w, &other.tuple.w, epsilon, max_relative)
     }
 }
 

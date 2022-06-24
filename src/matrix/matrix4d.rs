@@ -1,14 +1,14 @@
 use std::ops::{Index, Mul};
 use approx::{RelativeEq, AbsDiffEq};
 
-use crate::tuple::Tuple;
+use crate::{tuple::Tuple, point::Point, vector::Vector};
 
 use super::matrix3d::Matrix3D;
 
 const MATRIX_SIZE: usize = 4;
 
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Matrix4D {
     pub data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]
 }
@@ -146,6 +146,24 @@ impl Mul<Tuple> for Matrix4D {
             }
         }
         Tuple::from_array(tmp)
+    }
+}
+
+// Implement multiplication by point
+impl Mul<Point> for Matrix4D {
+    type Output = Point;
+
+    fn mul(self, rhs: Point) -> Self::Output {
+        Point::from_tuple(self * rhs.tuple)
+    }
+}
+
+// Implement multiplication by vector
+impl Mul<Vector> for Matrix4D {
+    type Output = Vector;
+
+    fn mul(self, rhs: Vector) -> Self::Output {
+        Vector::from_tuple(self * rhs.tuple)
     }
 }
 
@@ -460,6 +478,24 @@ mod tests {
         );
 
         assert_eq!(&m1.inverse().unwrap(), &m1_inv);
+
+        let m1 = Matrix4D::new(
+            [[3.0, -9.0, 7.0, 3.0],
+            [3.0, -8.0, 2.0, -9.0],
+            [-4.0, 4.0, 4.0, 1.0],
+            [-6.0, 5.0, -1.0, 1.0]]   
+        );
+
+        let m2 = Matrix4D::new(
+            [[9.0, 3.0, 0.0, 9.0],
+            [-5.0, -2.0, -6.0, -3.0],
+            [-4.0, 9.0, 6.0, 4.0],
+            [-7.0, 6.0, 6.0, 2.0]]
+        );
+
+        let m3 = m1 * m2;
+
+        assert_relative_eq!(m3*m2.inverse().unwrap(), m1, max_relative=1e-6);
     }
 
 }

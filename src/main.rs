@@ -7,6 +7,7 @@ mod projectile;
 mod color;
 mod canvas;
 mod matrix;
+mod transformations;
 
 use std::cmp;
 

@@ -126,8 +126,6 @@ impl RelativeEq for Tuple {
     }
 
     fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
-        println!("epsilon: {}, max_relative: {}", epsilon, max_relative);
-        println!("diff: {}", &self.z - &other.z);
         f32::relative_eq(&self.x, &other.x, epsilon, max_relative) &&
         f32::relative_eq(&self.y, &other.y, epsilon, max_relative) &&
         f32::relative_eq(&self.z, &other.z, epsilon, max_relative) &&
