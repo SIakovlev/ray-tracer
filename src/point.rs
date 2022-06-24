@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn subtacting_two_points() {
+    fn subtracting_two_points() {
         let p1 = Point::new(3.0, 2.0, 1.0);
         let p2 = Point::new(5.0, 6.0, 7.0);
         let v = Vector::new(-2.0, -4.0, -6.0);
