@@ -11,24 +11,29 @@ pub struct Ray {
 }
 
 impl<'a, 'b> Ray {
-    fn new(origin: Point, direction: Vector) -> Self {
+    pub fn new(origin: Point, direction: Vector) -> Self {
         Ray { origin, direction }
     }
 
-    fn position(&self, t: f32) -> Point {
+    pub fn position(&self, t: f32) -> Point {
         self.origin + self.direction * t
     }
 
-    fn intersection(&'a self, object: &'b Object) -> Result<Option<Vec<Intersection<'b>>>, String> {
-        let obj_to_ray = self.origin - object.origin;
+    pub fn intersection(&'a self, object: &'b Object) -> Result<Option<Vec<Intersection<'b>>>, String> {
 
-        let a = self.direction.dot(&self.direction);
+        let r = self.transform(object
+            .transform
+            .inverse()
+            .expect("Cannot apply object transformation"));
+
+        let obj_to_ray = r.origin - object.origin;
+
+        let a = r.direction.dot(&r.direction);
         if a.relative_eq(&0.0, f32::EPSILON, f32::EPSILON) {
             return Err("Direction is zero or close to zero".to_string())
         }
 
-
-        let b = 2.0 * self.direction.dot(&obj_to_ray);
+        let b = 2.0 * r.direction.dot(&obj_to_ray);
         let c = obj_to_ray.dot(&obj_to_ray) - 1.0;
 
         let discriminant = b * b - 4.0 * a * c;
@@ -46,7 +51,7 @@ impl<'a, 'b> Ray {
         Ok(Some(is))
     }
 
-    fn transform(&self, transformation: Matrix4D) -> Self {
+    pub fn transform(&self, transformation: Matrix4D) -> Self {
         Ray {
             origin: transformation * self.origin, 
             direction: transformation * self.direction 
@@ -70,7 +75,7 @@ mod tests {
 
     #[test]
     fn unit_sphere_intersection() -> Result<(), String> {
-        let obj = Object {origin: Point::new(0.0, 0.0, 0.0), transforms: Vec::new()};
+        let obj = Object::new(Point::new(0.0, 0.0, 0.0));
         // ray intersects a unit sphere at two points
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
         let xs = r.intersection(&obj)?.unwrap();
@@ -114,7 +119,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Direction is zero or close to zero")]
     fn unit_sphere_intersection_failure() {
-        let obj = Object {origin: Point::new(0.0, 0.0, 0.0), transforms: Vec::new()};
+        let obj = Object::new(Point::new(0.0, 0.0, 0.0));
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 0.0));
         r.intersection(&obj).unwrap();
     }

@@ -3,7 +3,17 @@ use crate::{point::Point, matrix::matrix4d::Matrix4D};
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Object {
     pub origin: Point,
-    pub transforms: Vec<Matrix4D>
+    pub transform: Matrix4D
+}
+
+impl Object {
+    pub fn new(origin: Point) -> Self {
+        Self { origin: origin, transform: Matrix4D::identity() }
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix4D) {
+        self.transform = transform;
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -30,13 +40,19 @@ pub fn hit<'a>(intersections: &'a mut Vec<Intersection<'a>>) -> Option<&Intersec
 mod tests {
     use std::vec;
 
-    use crate::point::Point;
+    use crate::{
+        point::Point, 
+        vector::Vector,
+        matrix::matrix4d::Matrix4D, 
+        ray::Ray, 
+        transformations::*
+    };
     use super::{Object, Intersection, hit};
 
     #[test]
     fn hit_test() {
         // basic intersection
-        let s = Object{origin: Point::new(0.0, 0.0, 0.0), transforms: Vec::new()};
+        let s = Object::new(Point::new(0.0, 0.0, 0.0));
         let i1 = Intersection::new(1.0, &s);
         let i2 = Intersection::new(2.0, &s);
         let mut xs = vec![i1, i2];
@@ -65,6 +81,44 @@ mod tests {
         let mut xs = vec![i1, i2, i3, i4];
         let i = hit(&mut xs);
         assert_eq!(i.unwrap(), &i4);
+    }
+
+    #[test]
+    fn obj_transformations() {
+        let s = Object::new(Point::new(0.0, 0.0, 0.0));
+        let t = Matrix4D::identity();
+        assert_eq!(s.transform, t);
+
+        let mut s = Object::new(Point::new(0.0, 0.0, 0.0));
+        let t = translation(2.0, 3.0, 4.0);
+        s.set_transform(t);
+        assert_eq!(s.transform, t);
+    }
+
+    #[test]
+    fn intersecting_scaled_sphere() -> Result<(), String> {
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        
+        let mut s = Object::new(Point::new(0.0, 0.0, 0.0));
+        s.set_transform(scaling(2.0, 2.0, 2.0));
+        let xs = r.intersection(&s)?.unwrap();
+
+        assert_eq!(xs.len(), 2);
+        assert_eq!(xs[0].t, 3.0);
+        assert_eq!(xs[1].t, 7.0);
+
+        // intersection does not modify a ray
+        assert_eq!(r.origin, Point::new(0.0, 0.0, -5.0));
+        assert_eq!(r.direction, Vector::new(0.0, 0.0, 1.0));
+
+        // intersection with shifted sphere
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        
+        let mut s = Object::new(Point::new(0.0, 0.0, 0.0));
+        s.set_transform(translation(5.0, 0.0, 0.0));
+        assert!(r.intersection(&s)?.is_none());
+
+        Ok(())
     }
 }
 
