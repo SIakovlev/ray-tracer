@@ -8,6 +8,8 @@ mod color;
 mod canvas;
 mod matrix;
 mod transformations;
+mod ray;
+mod intersection;
 
 use std::cmp;
 
