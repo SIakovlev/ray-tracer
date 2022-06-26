@@ -1,5 +1,6 @@
 use crate::tuple::Tuple;
-use std::ops::{Add, Sub, Div, Mul};
+use std::ops::{Add, Sub, Div, Mul, Neg};
+use approx::{RelativeEq, AbsDiffEq};
 
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
@@ -37,6 +38,10 @@ impl Vector {
         }
     }
 
+    pub fn reflect(&self, normal: Vector) -> Self {
+        *self - normal * 2.0 * self.dot(&normal)
+    }
+
 }
 
 impl Add<Vector> for Vector {
@@ -68,6 +73,39 @@ impl Mul<f32> for Vector {
 
     fn mul(self, rhs: f32) -> Self::Output {
         Vector { tuple: self.tuple * rhs }
+    }
+}
+
+impl Neg for Vector {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            tuple: -self.tuple
+        }
+    }
+}
+
+impl AbsDiffEq for Vector {
+    type Epsilon = f32;
+
+    fn default_epsilon() -> Self::Epsilon {
+        f32::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+        Tuple::abs_diff_eq(&self.tuple, &other.tuple, epsilon)
+    }
+}
+
+impl RelativeEq for Vector {
+
+    fn default_max_relative() -> f32 {
+        f32::default_max_relative()
+    }
+
+    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+        Tuple::relative_eq(&self.tuple, &other.tuple, epsilon, max_relative)
     }
 }
 
@@ -111,21 +149,21 @@ mod tests {
     }
 
     #[test]
-    fn normalise_vector () {
+    fn normalise_vector() {
         let v = Vector::new(1.0, 2.0, 3.0);
         // let v_normalised = Vector::new(0.26726, 0.53452, 0.80178);
         approx::assert_relative_eq!(v.normalise().magnitude(), 1.0)
     }
 
     #[test]
-    fn dot_product () {
+    fn dot_product() {
         let v1 = Vector::new(1.0, 2.0, 3.0);
         let v2 = Vector::new(4.0, 5.0, 6.0);
         approx::assert_relative_eq!(v1.dot(&v2), 32.0)
     }
 
     #[test]
-    fn cross_product () {
+    fn cross_product() {
         let v1 = Vector::new(1.0, 2.0, 3.0);
         let v2 = Vector::new(2.0, 3.0, 4.0);
         let v12_ = v1.cross(&v2);
@@ -135,5 +173,18 @@ mod tests {
         let v21 = Vector::new(1.0, -2.0, 1.0);
         assert_eq!(&v12_, &v12);
         assert_eq!(&v21_, &v21);
+    }
+
+    #[test]
+    fn reflection() {
+        let v1 = Vector::new(1.0, -1.0, 0.0);
+        let n1 = Vector::new(0.0, 1.0, 0.0);
+        let r = v1.reflect(n1);
+        approx::assert_relative_eq!(r, Vector::new(1.0, 1.0, 0.0));
+
+        let v1 = Vector::new(0.0, -1.0, 0.0);
+        let n1 = Vector::new( 2.0f32.sqrt() / 2.0, 2.0f32.sqrt() / 2.0, 0.0);
+        let r = v1.reflect(n1);
+        approx::assert_relative_eq!(r, Vector::new(1.0, 0.0, 0.0));
     }
 }

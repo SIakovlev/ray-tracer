@@ -1,7 +1,7 @@
 use approx::RelativeEq;
 
 use crate::{
-    point::Point, vector::Vector, intersection::{Intersection, Object}, 
+    point::Point, vector::Vector, intersection::Intersection, spheres::Sphere,
     matrix::matrix4d::Matrix4D
 };
 
@@ -19,7 +19,7 @@ impl<'a, 'b> Ray {
         self.origin + self.direction * t
     }
 
-    pub fn intersection(&'a self, object: &'b Object) -> Result<Option<Vec<Intersection<'b>>>, String> {
+    pub fn intersection(&'a self, object: &'b Sphere) -> Result<Vec<Intersection<'b>>, String> {
 
         let r = self.transform(object
             .transform
@@ -36,19 +36,17 @@ impl<'a, 'b> Ray {
         let b = 2.0 * r.direction.dot(&obj_to_ray);
         let c = obj_to_ray.dot(&obj_to_ray) - 1.0;
 
+        let mut is = Vec::new();
+        
         let discriminant = b * b - 4.0 * a * c;
-        if discriminant < 0.0 {
-            return Ok(None)
+        if discriminant >= 0.0 {
+            let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
+            let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
+            is.push(Intersection {t: t1, object: object});
+            is.push(Intersection {t: t2, object: object});
         }
 
-        let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
-        let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
-
-        let mut is = Vec::new();
-        is.push(Intersection {t: t1, object: object});
-        is.push(Intersection {t: t2, object: object});
-
-        Ok(Some(is))
+        Ok(is)
     }
 
     pub fn transform(&self, transformation: Matrix4D) -> Self {
@@ -75,10 +73,10 @@ mod tests {
 
     #[test]
     fn unit_sphere_intersection() -> Result<(), String> {
-        let obj = Object::new(Point::new(0.0, 0.0, 0.0));
+        let obj = Sphere::new(Point::new(0.0, 0.0, 0.0));
         // ray intersects a unit sphere at two points
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        let xs = r.intersection(&obj)?.unwrap();
+        let xs = r.intersection(&obj)?;
 
         approx::assert_relative_eq!(xs[0].t, 4.0);
         approx::assert_relative_eq!(xs[1].t, 6.0);
@@ -87,7 +85,7 @@ mod tests {
 
         // ray intersects a unit sphere at a tangent
         let r = Ray::new(Point::new(0.0, 1.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        let xs = r.intersection(&obj)?.unwrap();
+        let xs = r.intersection(&obj)?;
 
         approx::assert_relative_eq!(xs[0].t, 5.0);
         approx::assert_relative_eq!(xs[1].t, 5.0);
@@ -95,11 +93,12 @@ mod tests {
 
         // ray does not intersect a unit sphere
         let r = Ray::new(Point::new(0.0, 2.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        assert!(r.intersection(&obj)?.is_none());
+        let xs = r.intersection(&obj)?;
+        assert_eq!(xs.len(), 0);
 
         // ray originates inside sphere
         let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
-        let xs = r.intersection(&obj)?.unwrap();
+        let xs = r.intersection(&obj)?;
 
         approx::assert_relative_eq!(xs[0].t, -1.0);
         approx::assert_relative_eq!(xs[1].t, 1.0);
@@ -107,7 +106,7 @@ mod tests {
 
         // A sphere is behind a ray
         let r = Ray::new(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));
-        let xs = r.intersection(&obj)?.unwrap();
+        let xs = r.intersection(&obj)?;
 
         approx::assert_relative_eq!(xs[0].t, -6.0);
         approx::assert_relative_eq!(xs[1].t, -4.0);
@@ -119,7 +118,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Direction is zero or close to zero")]
     fn unit_sphere_intersection_failure() {
-        let obj = Object::new(Point::new(0.0, 0.0, 0.0));
+        let obj = Sphere::new(Point::new(0.0, 0.0, 0.0));
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 0.0));
         r.intersection(&obj).unwrap();
     }

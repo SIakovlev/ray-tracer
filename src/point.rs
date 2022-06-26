@@ -61,10 +61,7 @@ impl AbsDiffEq for Point {
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
-        f32::abs_diff_eq(&self.tuple.x, &other.tuple.x, epsilon) &&
-        f32::abs_diff_eq(&self.tuple.y, &other.tuple.z, epsilon) &&
-        f32::abs_diff_eq(&self.tuple.z, &other.tuple.z, epsilon) &&
-        f32::abs_diff_eq(&self.tuple.w, &other.tuple.w, epsilon)
+        Tuple::abs_diff_eq(&self.tuple, &other.tuple, epsilon)
     }
 }
 
@@ -75,10 +72,7 @@ impl RelativeEq for Point {
     }
 
     fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
-        f32::relative_eq(&self.tuple.x, &other.tuple.x, epsilon, max_relative) &&
-        f32::relative_eq(&self.tuple.y, &other.tuple.y, epsilon, max_relative) &&
-        f32::relative_eq(&self.tuple.z, &other.tuple.z, epsilon, max_relative) &&
-        f32::relative_eq(&self.tuple.w, &other.tuple.w, epsilon, max_relative)
+        Tuple::relative_eq(&self.tuple, &other.tuple, epsilon, max_relative)
     }
 }
 
