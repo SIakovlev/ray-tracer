@@ -13,6 +13,7 @@ mod intersection;
 mod lights;
 mod materials;
 mod spheres;
+mod world;
 
 use std::cmp;
 

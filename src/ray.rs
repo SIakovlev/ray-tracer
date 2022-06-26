@@ -1,8 +1,8 @@
 use approx::RelativeEq;
 
 use crate::{
-    point::Point, vector::Vector, intersection::Intersection, spheres::Sphere,
-    matrix::matrix4d::Matrix4D
+    point::Point, vector::Vector, intersection::{Intersection, IntersectionComputations}, spheres::Sphere,
+    matrix::matrix4d::Matrix4D, world::World
 };
 
 pub struct Ray {
@@ -47,6 +47,38 @@ impl<'a, 'b> Ray {
         }
 
         Ok(is)
+    }
+
+    pub fn intersect_world(&'a self, world: &'b World) -> Result<Vec<Intersection<'b>>, String> {
+        // gather all intersections into vector
+        let mut result = Vec::<Intersection>::new();
+        for obj in &world.objects {
+            result.append(&mut self.intersection(obj)?);
+        }
+        // sort intersections based on t value
+        result.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+        Ok(result)
+    }
+
+    pub fn prepare_computations(&self, intersection: &'a Intersection) -> IntersectionComputations<'a> {
+        let point = self.position(intersection.t);
+        let mut normal = intersection.object.normal_at(point);
+        let eye = -self.direction;
+        let mut inside = false;
+
+        if normal.dot(&eye) < 0.0 {
+            inside = true;
+            normal = -normal;
+        }
+
+        IntersectionComputations {
+            t: intersection.t,
+            object: intersection.object, 
+            point: point, 
+            eye: eye, 
+            normal: normal,
+            inside: inside, 
+        }
     }
 
     pub fn transform(&self, transformation: Matrix4D) -> Self {
@@ -143,6 +175,37 @@ mod tests {
 
         assert_eq!(r2.origin, Point::new(2.0, 6.0, 12.0));
         assert_eq!(r2.direction, Vector::new(0.0, 3.0, 0.0));
+    }
+
+    #[test]
+    fn prepare_computations_test() {
+        // the hit, when an intersection occurs on the outside
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let i = Intersection::new(4.0, &s);
+        let comps = r.prepare_computations(&i);
+
+        assert_eq!(comps.inside, false);
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, Point::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.eye, Vector::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
+
+        // the hit, when an intersection occurs on the inside
+        let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let i = Intersection::new(1.0, &s);
+        let comps = r.prepare_computations(&i);
+
+        assert_eq!(comps.inside, true);
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, Point::new(0.0, 0.0, 1.0));
+        assert_eq!(comps.eye, Vector::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
+
+
     }
 }
 

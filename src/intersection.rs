@@ -1,5 +1,16 @@
+use crate::color::Color;
+use crate::lights::PointLight;
 use crate::{point::Point, matrix::matrix4d::Matrix4D, vector::Vector};
 use crate::spheres::Sphere;
+
+pub struct IntersectionComputations<'a> {
+    pub t: f32,
+    pub object: &'a Sphere,
+    pub point: Point,
+    pub eye: Vector,
+    pub normal: Vector,
+    pub inside: bool,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Intersection<'a> {
