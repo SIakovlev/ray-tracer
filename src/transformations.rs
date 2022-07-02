@@ -1,6 +1,6 @@
 
 
-use crate::matrix::matrix4d::Matrix4D;
+use crate::{matrix::matrix4d::Matrix4D, vector::Vector, point::Point};
 
 pub fn translation(x: f32, y: f32, z: f32) -> Matrix4D {
     Matrix4D::new(
@@ -56,8 +56,23 @@ pub fn shearing(x_y: f32, x_z: f32, y_x: f32, y_z: f32, z_x: f32, z_y: f32) -> M
     )
 }
 
+pub fn view_transform(from: Point, to: Point, up: Vector) -> Matrix4D {
+
+    let forward = (to - from).normalise();
+    let upn = (up).normalise();
+    let left = forward.cross(&upn);
+    let true_up = left.cross(&forward);
+
+    Matrix4D { data: [[left.tuple.x, left.tuple.y, left.tuple.z, 0.0],
+        [true_up.tuple.x, true_up.tuple.y, true_up.tuple.z, 0.0],
+        [-forward.tuple.x, -forward.tuple.y, -forward.tuple.z, 0.0],
+        [0.0, 0.0, 0.0, 1.0]] } * translation(-from.tuple.x, -from.tuple.y, -from.tuple.z)
+}
+
 #[cfg(test)]
 mod tests {
+    use std::f32::EPSILON;
+
     use super::*;
     use crate::{point::Point, vector::Vector};
 
@@ -169,5 +184,42 @@ mod tests {
 
         let T = C * B * A;
         approx::assert_relative_eq!(T * p, Point::new(15.0, 0.0, 7.0));
+    }
+
+    #[test]
+    fn view_transform_test() {
+        // view transform for the default orientation
+        let from = Point::new(0.0, 0.0, 0.0);
+        let to = Point::new(0.0, 0.0, -1.0);
+        let up = Vector::new(0.0, 1.0, 0.0);
+        let t = view_transform(from, to, up);
+        approx::assert_relative_eq!(t, Matrix4D::identity());
+
+        // view transform matrix looking in the positive z direction
+        let from = Point::new(0.0, 0.0, 0.0);
+        let to = Point::new(0.0, 0.0, 1.0);
+        let up = Vector::new(0.0, 1.0, 0.0);
+        let t = view_transform(from, to, up);
+        approx::assert_relative_eq!(t, scaling(-1.0, 1.0, -1.0));
+
+        // view transform moves the world
+        let from = Point::new(0.0, 0.0, 8.0);
+        let to = Point::new(0.0, 0.0, 0.0);
+        let up = Vector::new(0.0, 1.0, 0.0);
+        let t = view_transform(from, to, up);
+        approx::assert_relative_eq!(t, translation(0.0, 0.0, -8.0));
+
+        // an arbitrary view transform
+        let from = Point::new(1.0, 3.0, 2.0);
+        let to = Point::new(4.0, -2.0, 8.0);
+        let up = Vector::new(1.0, 1.0, 0.0);
+        let t = view_transform(from, to, up);
+        approx::assert_relative_eq!(t, Matrix4D::new(
+            [[-0.50709254, 0.50709254, 0.6761234, -2.366432], 
+            [0.76771593, 0.6060915, 0.12121832, -2.828427], 
+            [-0.35856858, 0.59761435, -0.71713716, -2.3841858e-7], 
+            [0.0, 0.0, 0.0, 1.0]])
+        );
+
     }
 }

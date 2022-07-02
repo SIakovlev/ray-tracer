@@ -54,7 +54,7 @@ impl Default for World {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ray::Ray, point::Point, vector::Vector, color::Color};
+    use crate::{ray::Ray, point::Point, vector::Vector, color::Color, lights::PointLight, intersection::Intersection};
     use super::World;
 
     #[test]
@@ -69,6 +69,28 @@ mod tests {
         approx::assert_relative_eq!(xs[1].t, 4.5);
         approx::assert_relative_eq!(xs[2].t, 5.5);
         approx::assert_relative_eq!(xs[3].t, 6.0);
+    }
+
+    #[test]
+    fn shade_hit_test() {
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let w = World::default();
+        let shape = &w.objects[0];
+        let i = Intersection::new(4.0, shape);
+        let computations = r.prepare_computations(&i);
+        let c = w.shade_hit(&computations);
+
+        approx::assert_relative_eq!(c, Color::new(0.38066125, 0.4758265, 0.28549594));
+
+        let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
+        let mut w = World::default();
+        w.light = PointLight::new(Point::new(0.0, 0.25, 0.0), Color::new(1.0, 1.0, 1.0));
+        let shape = &w.objects[1];
+        let i = Intersection::new(0.5, shape);
+        let computations = r.prepare_computations(&i);
+        let c = w.shade_hit(&computations);
+
+        approx::assert_relative_eq!(c, Color::new(0.9049845, 0.9049845, 0.9049845));
     }
 
     #[test]
@@ -96,4 +118,6 @@ mod tests {
 
         assert_eq!(c, w.objects[1].material.color);
     }
+
+    
 }
