@@ -1,7 +1,7 @@
 use crate::{color::{Color}, lights::PointLight, point::Point, vector::Vector};
 use approx::{AbsDiffEq, RelativeEq};
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Material {
     pub color: Color,
     pub ambient: f32,

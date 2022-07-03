@@ -33,9 +33,6 @@ impl Default for Sphere {
 
 #[cfg(test)]
 mod tests {
-
-    use approx::AbsDiffEq;
-
     use crate::{point::Point, vector::Vector, spheres::Sphere, transformations::*, materials::Material};
     use std::f32;
 
@@ -84,8 +81,5 @@ mod tests {
         m.ambient = 1.0;
         s.material = m;
         assert_eq!(s.material.ambient, 1.0);
-
-        
-
     }
 }

@@ -14,10 +14,11 @@ mod lights;
 mod materials;
 mod spheres;
 mod world;
+mod camera;
 
 use std::cmp;
 
-use crate::{materials::Material, lights::PointLight};
+use crate::{materials::Material, lights::PointLight, transformations::*, world::World, camera::Camera, point::Point, vector::Vector};
 
 fn projectile_example() {
     let start = point::Point::new(0.0, 1.0, 0.0);
@@ -108,7 +109,72 @@ fn sphere_shadow_example() {
 
 }
 
+fn sphere_scene_example() {
+    use spheres::Sphere;
+    use color::Color;
+    use std::f32;
+
+    let mut camera = Camera::new(1000.0, 500.0, f32::consts::PI/3.0);
+    camera.transform = view_transform(
+        Point::new(0.0, 1.5, -5.0), 
+        Point::new(0.0, 1.0, 0.0), 
+        Vector::new(0.0, 1.0, 0.0));
+
+    // create floor
+    let mut floor = Sphere::default();
+    floor.transform = scaling(10.0, 0.01, 10.0);
+    floor.material.color = Color::new(1.0, 0.9, 0.9);
+    floor.material.specular = 0.0;
+
+    // creat left wall
+    let mut left_wall = Sphere::default();
+    left_wall.transform = translation(0.0, 0.0, 5.0) 
+        * rotation_y(-f32::consts::PI/4.0) 
+        * rotation_x(f32::consts::PI/2.0) 
+        * scaling(10.0, 0.01, 10.0);
+    left_wall.material = floor.material;
+
+    // create right wall
+    let mut right_wall = Sphere::default();
+    right_wall.transform = translation(0.0, 0.0, 5.0) 
+        * rotation_y(f32::consts::PI/4.0) 
+        * rotation_x(f32::consts::PI/2.0) 
+        * scaling(10.0, 0.01, 10.0);
+    right_wall.material = floor.material;
+
+    let mut middle = Sphere::default();
+    middle.transform = translation(-0.5, 1.0, 0.5);
+    middle.material.color = Color::new(0.1, 1.0, 0.5);
+    middle.material.diffuse = 0.7;
+    middle.material.specular = 0.3;
+
+    let mut right = Sphere::default();
+    right.transform = translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5);
+    right.material.color = Color::new(0.5, 1.0, 0.1);
+    right.material.diffuse = 0.7;
+    right.material.specular = 0.3;
+
+    let mut left = Sphere::default();
+    left.transform = translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33);
+    left.material.color = Color::new(1.0, 0.8, 0.1);
+    left.material.diffuse = 0.7;
+    left.material.specular = 0.3;
+
+    let light = PointLight::new(
+        Point::new(-10.0, 10.0, -10.0),
+        Color::new(1.0, 1.0, 1.0)
+    );
+
+    let world = World::new(vec![floor, left_wall, right_wall, middle, right, left], light);
+    match camera.render(&world) {
+        Ok(canvas) => canvas.to_ppm(255, "spheres.ppm"),
+        Err(err) => println!("{}", err),
+    }
+    
+}
+
 fn main() {
-    projectile_example();
-    sphere_shadow_example();
+    // projectile_example();
+    // sphere_shadow_example();
+    sphere_scene_example();
 }
