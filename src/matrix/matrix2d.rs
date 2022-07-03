@@ -6,17 +6,17 @@ const MATRIX_SIZE: usize = 2;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Matrix2D {
-    pub data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]
+    pub data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]
 }
 
 impl Matrix2D {
-    pub fn new(data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
+    pub fn new(data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
         Matrix2D { data: data }
     }
 
     // construct identity matrix
     pub fn identity() -> Self {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
                 if row_idx == col_idx {
@@ -28,7 +28,7 @@ impl Matrix2D {
     }
 
     pub fn transpose(&self) -> Matrix2D {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, elem) in row.iter().enumerate() {
                 tmp[col_idx][row_idx] = *elem;
@@ -38,13 +38,13 @@ impl Matrix2D {
         Matrix2D { data: tmp }
     }
 
-    pub fn det(&self) -> f32 {
+    pub fn det(&self) -> f64 {
         self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
     }
 }
 
 impl Index<(usize, usize)> for Matrix2D {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, idx_pair: (usize, usize)) -> &Self::Output {
         &self.data[idx_pair.0][idx_pair.1]
@@ -56,7 +56,7 @@ impl Mul<Matrix2D> for Matrix2D {
     type Output = Matrix2D;
 
     fn mul(self, rhs: Matrix2D) -> Self::Output {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, col) in rhs.transpose().data.iter().enumerate() {
                 for (r, c) in row.iter().zip(col.iter()) {

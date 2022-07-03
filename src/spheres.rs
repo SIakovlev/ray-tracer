@@ -34,7 +34,7 @@ impl Default for Sphere {
 #[cfg(test)]
 mod tests {
     use crate::{point::Point, vector::Vector, spheres::Sphere, transformations::*, materials::Material};
-    use std::f32;
+    use std::f64;
 
     #[test]
     fn normal_tests() {
@@ -49,8 +49,8 @@ mod tests {
         let n = s.normal_at(Point::new(0.0, 0.0, 1.0));
         approx::assert_relative_eq!(n, Vector::new(0.0, 0.0, 1.0));
 
-        let n = s.normal_at(Point::new(3.0f32.sqrt() / 3.0, 3.0f32.sqrt() / 3.0, 3.0f32.sqrt() / 3.0));
-        approx::assert_relative_eq!(n, Vector::new(3.0f32.sqrt() / 3.0, 3.0f32.sqrt() / 3.0, 3.0f32.sqrt() / 3.0));
+        let n = s.normal_at(Point::new(3.0f64.sqrt() / 3.0, 3.0f64.sqrt() / 3.0, 3.0f64.sqrt() / 3.0));
+        approx::assert_relative_eq!(n, Vector::new(3.0f64.sqrt() / 3.0, 3.0f64.sqrt() / 3.0, 3.0f64.sqrt() / 3.0));
         approx::assert_relative_eq!(n, n.normalise());
 
         // test translated sphere
@@ -59,15 +59,15 @@ mod tests {
             translation(0.0, 1.0, 0.0)
         );
         let n = s.normal_at(Point::new(0.0, 1.7071067, -0.7071067));
-        approx::assert_relative_eq!(n, Vector::new(0.0, 0.7071067, -0.7071067));
+        approx::assert_relative_eq!(n, Vector::new(0.0, 0.7071067, -0.7071067), epsilon=1e-6);
         
         // test scaled and rotated sphere
         let mut s = Sphere::new(Point::new(0.0, 0.0, 0.0));
         s.set_transform(
-            scaling(1.0, 0.5, 1.0) * rotation_z(f32::consts::PI/5.0f32)
+            scaling(1.0, 0.5, 1.0) * rotation_z(f64::consts::PI/5.0f64)
         );
-        let n = s.normal_at(Point::new(0.0, 2.0f32.sqrt() / 2.0, -2.0f32.sqrt() / 2.0));
-        approx::assert_relative_eq!(n, Vector::new(0.0, 0.9701425, -0.24253562));
+        let n = s.normal_at(Point::new(0.0, 2.0f64.sqrt() / 2.0, -2.0f64.sqrt() / 2.0));
+        approx::assert_relative_eq!(n, Vector::new(0.0, 0.9701425, -0.24253562), epsilon=1e-6);
     }
 
     #[test]

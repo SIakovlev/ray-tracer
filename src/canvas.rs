@@ -39,7 +39,7 @@ impl Canvas {
 
         for (idx, pixel) in self.pixels.iter().enumerate() {
             
-            let (red, green, blue) = pixel.normalise(0.0, max_color_value as f32);
+            let (red, green, blue) = pixel.normalise(0.0, max_color_value as f64);
 
             for value in [red, green, blue] {
                 let tmp = format!("{} ", value);

@@ -4,9 +4,10 @@ use crate::{point::Point, matrix::matrix4d::Matrix4D, vector::Vector};
 use crate::spheres::Sphere;
 
 pub struct IntersectionComputations<'a> {
-    pub t: f32,
+    pub t: f64,
     pub object: &'a Sphere,
     pub point: Point,
+    pub over_point: Point,
     pub eye: Vector,
     pub normal: Vector,
     pub inside: bool,
@@ -14,12 +15,12 @@ pub struct IntersectionComputations<'a> {
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Intersection<'a> {
-    pub t: f32,
+    pub t: f64,
     pub object: &'a Sphere
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(t: f32, obj: &'a Sphere) -> Self {
+    pub fn new(t: f64, obj: &'a Sphere) -> Self {
         Intersection {t: t, object: obj}
     }
 }

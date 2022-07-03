@@ -15,7 +15,7 @@ impl<'a, 'b> Ray {
         Ray { origin, direction }
     }
 
-    pub fn position(&self, t: f32) -> Point {
+    pub fn position(&self, t: f64) -> Point {
         self.origin + self.direction * t
     }
 
@@ -29,7 +29,7 @@ impl<'a, 'b> Ray {
         let obj_to_ray = r.origin - object.origin;
 
         let a = r.direction.dot(&r.direction);
-        if a.relative_eq(&0.0, f32::EPSILON, f32::EPSILON) {
+        if a.relative_eq(&0.0, f64::EPSILON, f64::EPSILON) {
             return Err("Direction is zero or close to zero".to_string())
         }
 
@@ -75,6 +75,7 @@ impl<'a, 'b> Ray {
             t: intersection.t,
             object: intersection.object, 
             point: point, 
+            over_point: point + normal * 1e-6,
             eye: eye, 
             normal: normal,
             inside: inside, 
@@ -91,6 +92,8 @@ impl<'a, 'b> Ray {
 
 #[cfg(test)]
 mod tests {
+    use crate::transformations::translation;
+
     use super::*;
 
     #[test]
@@ -205,7 +208,14 @@ mod tests {
         assert_eq!(comps.eye, Vector::new(0.0, 0.0, -1.0));
         assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
 
-
+        // the hit should offset the point
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let mut s = Sphere::default();
+        s.transform = translation(0.0, 0.0, 1.0);
+        let i = Intersection::new(5.0, &s);
+        let comps = r.prepare_computations(&i);
+        assert!(comps.over_point.tuple.z < -f64::EPSILON / 2.0);
+        assert!(comps.point.tuple.z > comps.over_point.tuple.z);
     }
 }
 

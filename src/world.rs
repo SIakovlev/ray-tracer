@@ -19,7 +19,8 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: &IntersectionComputations) -> Color {
-        comps.object.material.lighting(&self.light, &comps.point, &comps.eye, &comps.normal)
+        let in_shadow = self.is_shadowed(comps.over_point).unwrap();
+        comps.object.material.lighting(&self.light, &comps.over_point, &comps.eye, &comps.normal, in_shadow)
     }
 
     pub fn color_at(&self, ray: &Ray) -> Result<Color, String> {
@@ -33,6 +34,26 @@ impl World {
             _ => Color::new(0.0, 0.0, 0.0)
         };
         Ok(color)
+    }
+
+    pub fn is_shadowed(&self, point: Point) -> Result<bool, String> {
+        let v = self.light.position - point;
+        let distance = v.magnitude();
+        let direction = v.normalise();
+
+        let r = Ray::new(point, direction);
+        let mut intersections = r.intersect_world(self)?;
+        
+        match hit(&mut intersections) {
+            Some(h) => {
+                if h.t < distance {
+                    return Ok(true)
+                } else {
+                    return Ok(false)
+                }
+            }
+            None => return Ok(false)
+        }
     }
 }
 
@@ -54,7 +75,7 @@ impl Default for World {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ray::Ray, point::Point, vector::Vector, color::Color, lights::PointLight, intersection::Intersection};
+    use crate::{ray::Ray, point::Point, vector::Vector, color::Color, lights::PointLight, intersection::Intersection, spheres::Sphere, transformations::translation};
     use super::World;
 
     #[test]
@@ -80,7 +101,7 @@ mod tests {
         let computations = r.prepare_computations(&i);
         let c = w.shade_hit(&computations);
 
-        approx::assert_relative_eq!(c, Color::new(0.38066125, 0.4758265, 0.28549594));
+        approx::assert_relative_eq!(c, Color::new(0.38066125, 0.4758265, 0.28549594), epsilon=1e-6);
 
         let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
         let mut w = World::default();
@@ -90,7 +111,24 @@ mod tests {
         let computations = r.prepare_computations(&i);
         let c = w.shade_hit(&computations);
 
-        approx::assert_relative_eq!(c, Color::new(0.9049845, 0.9049845, 0.9049845));
+        approx::assert_relative_eq!(c, Color::new(0.9049845, 0.9049845, 0.9049845), epsilon=1e-6);
+
+        let s1 = Sphere::default();
+        let mut s2 = Sphere::default();
+        s2.transform = translation(0.0, 0.0, 10.0);
+        let w = World::new(
+            vec![s1, s2],
+            PointLight::new(
+                Point::new(0.0, 0.0, -10.0), 
+                Color::new(1.0, 1.0, 1.0)
+            )
+        );
+        let r = Ray::new(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));
+        let comps = r.prepare_computations(&i);
+        let i = Intersection::new(4.0, &w.objects[1]);
+        let c = w.shade_hit(&comps);
+
+        approx::assert_relative_eq!(c, Color::new(0.1, 0.1, 0.1));
     }
 
     #[test]
@@ -107,7 +145,7 @@ mod tests {
         let w = World::default();
         let c = w.color_at(&r).unwrap();
 
-        assert_eq!(c, Color::new(0.38066125, 0.4758265, 0.28549594));
+        approx::assert_relative_eq!(c, Color::new(0.38066125, 0.4758265, 0.28549594), epsilon=1e-6);
 
         // ray hits between two spheres
         let r = Ray::new(Point::new(0.0, 0.0, 0.75), Vector::new(0.0, 0.0, -1.0));
@@ -119,5 +157,25 @@ mod tests {
         assert_eq!(c, w.objects[1].material.color);
     }
 
-    
+    #[test]
+    fn is_shadowed_test() {
+        let w = World::default();
+
+        // no shadow when nothing is collinear with point and light
+        let p = Point::new(0.0, 10.0, 0.0);
+        assert!(!w.is_shadowed(p).unwrap());
+
+        // the shadow when an object is between the point and the light
+        let p = Point::new(10.0, -10.0, 10.0);
+        assert!(w.is_shadowed(p).unwrap());
+
+        // no shadow when an object is behind the light
+        let p = Point::new(-20.0, 20.0, -20.0);
+        assert!(!w.is_shadowed(p).unwrap());
+
+        // no shadow when an object is behind the point
+        let p = Point::new(0.0, 10.0, 0.0);
+        assert!(!w.is_shadowed(p).unwrap());
+    }
+
 }

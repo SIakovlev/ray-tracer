@@ -5,17 +5,17 @@ use approx::{RelativeEq, AbsDiffEq};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Color {
-    pub red: f32,
-    pub green: f32,
-    pub blue: f32,
+    pub red: f64,
+    pub green: f64,
+    pub blue: f64,
 }
 
 impl Color {
-    pub fn new(red: f32, green: f32, blue: f32) -> Self {
+    pub fn new(red: f64, green: f64, blue: f64) -> Self {
         Self { red: red, green: green, blue: blue }
     }
 
-    pub fn normalise(&self, min: f32, max: f32) -> (u32, u32, u32) {
+    pub fn normalise(&self, min: f64, max: f64) -> (u32, u32, u32) {
         let red = num::clamp(self.red * max, min, max);
         let green = num::clamp(self.green * max, min, max);
         let blue = num::clamp(self.blue * max, min, max);
@@ -49,10 +49,10 @@ impl Sub for Color {
     
 }
 
-impl Mul<f32> for Color {
+impl Mul<f64> for Color {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Color {
             red: self.red * rhs,
             green: self.green * rhs, 
@@ -74,29 +74,29 @@ impl Mul<Color> for Color {
 }
 
 impl AbsDiffEq for Color {
-    type Epsilon = f32;
+    type Epsilon = f64;
 
     fn default_epsilon() -> Self::Epsilon {
-        f32::default_epsilon()
+        f64::default_epsilon()
     }
 
-    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
-        f32::abs_diff_eq(&self.red, &other.red, epsilon) &&
-        f32::abs_diff_eq(&self.green, &other.green, epsilon) &&
-        f32::abs_diff_eq(&self.blue, &other.blue, epsilon)
+    fn abs_diff_eq(&self, other: &Self, epsilon: f64) -> bool {
+        f64::abs_diff_eq(&self.red, &other.red, epsilon) &&
+        f64::abs_diff_eq(&self.green, &other.green, epsilon) &&
+        f64::abs_diff_eq(&self.blue, &other.blue, epsilon)
     }
 }
 
 impl RelativeEq for Color {
 
-    fn default_max_relative() -> f32 {
-        f32::default_max_relative()
+    fn default_max_relative() -> f64 {
+        f64::default_max_relative()
     }
 
-    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
-        f32::relative_eq(&self.red, &other.red, epsilon, max_relative) &&
-        f32::relative_eq(&self.green, &other.green, epsilon, max_relative) &&
-        f32::relative_eq(&self.blue, &other.blue, epsilon, max_relative)
+    fn relative_eq(&self, other: &Self, epsilon: f64, max_relative: f64) -> bool {
+        f64::relative_eq(&self.red, &other.red, epsilon, max_relative) &&
+        f64::relative_eq(&self.green, &other.green, epsilon, max_relative) &&
+        f64::relative_eq(&self.blue, &other.blue, epsilon, max_relative)
     }
 }
 

@@ -9,17 +9,17 @@
 
 // #[derive(Debug, PartialEq, PartialOrd)]
 // pub struct Matrix<const M: usize, const N: usize> {
-//     pub data: [[f32; N]; M]
+//     pub data: [[f64; N]; M]
 // }
 
 // impl<const M: usize, const N: usize> Matrix<M, N> {
-//     pub fn new(data: [[f32; N]; M]) -> Self {
+//     pub fn new(data: [[f64; N]; M]) -> Self {
 //         Matrix { data: data }
 //     }
 
 //     // construct identity matrix
 //     pub fn identity() -> Self {
-//         let mut tmp: [[f32; N]; M] = [[0.0; N]; M];
+//         let mut tmp: [[f64; N]; M] = [[0.0; N]; M];
 //         for row_idx in 0..M {
 //             for col_idx in 0..N {
 //                 if row_idx == col_idx {
@@ -31,7 +31,7 @@
 //     }
 
 //     pub fn transpose(&self) -> Matrix<N, M> {
-//         let mut tmp: [[f32; M]; N] = [[0.0; M]; N];
+//         let mut tmp: [[f64; M]; N] = [[0.0; M]; N];
 //         for (row_idx, row) in self.data.iter().enumerate() {
 //             for (col_idx, elem) in row.iter().enumerate() {
 //                 tmp[col_idx][row_idx] = *elem;
@@ -41,7 +41,7 @@
 //         Matrix { data: tmp }
 //     }
 
-//     pub fn minor(&self, row_idx: usize, col_idx: usize) -> f32 
+//     pub fn minor(&self, row_idx: usize, col_idx: usize) -> f64 
 //     where
 //         [(); N - 1]:,
 //         [(); M - 1]:,
@@ -55,7 +55,7 @@
 //         submatrix.det()
 //     }
 
-//     pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f32 
+//     pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f64 
 //     where
 //         [(); N - 1]:,
 //         [(); M - 1]:,
@@ -73,19 +73,19 @@
 //         }
 //     }
 
-//     pub fn det(&self) -> f32 
+//     pub fn det(&self) -> f64 
 //     where
 //         [(); N - 1]:,
 //         [(); M - 1]:,
 //     {    
-//         let mut result: f32 = 0.0;
+//         let mut result: f64 = 0.0;
 //         for i in 0..N {
 //             result += self.cofactor(0, i);
 //         }
 //         result
 //     }
 
-//     fn det2(&self) -> f32 {
+//     fn det2(&self) -> f64 {
 //         assert!(N == 2 && M == 2);
 //         self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
 //     }
@@ -94,7 +94,7 @@
 
 //         assert!(N > 1 && M > 1);
 
-//         let mut tmp: [[f32; N-1]; M-1] = [[0.0; N-1]; M-1];
+//         let mut tmp: [[f64; N-1]; M-1] = [[0.0; N-1]; M-1];
     
 //         let mut row_idx: usize = 0;
 //         let mut col_idx: usize = 0;
@@ -118,7 +118,7 @@
 // }
 
 // impl<const M: usize, const N: usize> Index<(usize, usize)> for Matrix<M, N> {
-//     type Output = f32;
+//     type Output = f64;
 
 //     fn index(&self, idx_pair: (usize, usize)) -> &Self::Output {
 //         &self.data[idx_pair.0][idx_pair.1]
@@ -130,7 +130,7 @@
 //     type Output = Matrix<N, N>;
 
 //     fn mul(self, rhs: Matrix<N, M>) -> Self::Output {
-//         let mut tmp: [[f32; N]; N] = [[0.0; N]; N];
+//         let mut tmp: [[f64; N]; N] = [[0.0; N]; N];
 //         for (row_idx, row) in self.data.iter().enumerate() {
 //             for (col_idx, col) in rhs.transpose().data.iter().enumerate() {
 //                 for (r, c) in row.iter().zip(col.iter()) {
@@ -147,7 +147,7 @@
 //     type Output = Tuple;
 
 //     fn mul(self, rhs: Tuple) -> Self::Output {
-//         let mut tmp: [f32; 4] = [0.0; 4];
+//         let mut tmp: [f64; 4] = [0.0; 4];
 //         for (row_idx, row) in self.data.iter().enumerate() {
 //             for (r, c) in row.iter().zip(rhs.into_iter()) {
 //                 tmp[row_idx] += r * c;

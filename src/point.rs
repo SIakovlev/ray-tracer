@@ -10,7 +10,7 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { 
             tuple: Tuple::new(x, y, z, 1.0) 
         }
@@ -54,24 +54,24 @@ impl Sub<Vector> for Point {
 }
 
 impl AbsDiffEq for Point {
-    type Epsilon = f32;
+    type Epsilon = f64;
 
     fn default_epsilon() -> Self::Epsilon {
-        f32::default_epsilon()
+        f64::default_epsilon()
     }
 
-    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+    fn abs_diff_eq(&self, other: &Self, epsilon: f64) -> bool {
         Tuple::abs_diff_eq(&self.tuple, &other.tuple, epsilon)
     }
 }
 
 impl RelativeEq for Point {
 
-    fn default_max_relative() -> f32 {
-        f32::default_max_relative()
+    fn default_max_relative() -> f64 {
+        f64::default_max_relative()
     }
 
-    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+    fn relative_eq(&self, other: &Self, epsilon: f64, max_relative: f64) -> bool {
         Tuple::relative_eq(&self.tuple, &other.tuple, epsilon, max_relative)
     }
 }

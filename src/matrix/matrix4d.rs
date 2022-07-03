@@ -10,17 +10,17 @@ const MATRIX_SIZE: usize = 4;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Matrix4D {
-    pub data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]
+    pub data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]
 }
 
 impl Matrix4D {
-    pub fn new(data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
+    pub fn new(data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
         Matrix4D { data: data }
     }
 
     // construct identity matrix
     pub fn identity() -> Self {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
                 if row_idx == col_idx {
@@ -32,7 +32,7 @@ impl Matrix4D {
     }
 
     pub fn transpose(&self) -> Matrix4D {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, elem) in row.iter().enumerate() {
                 tmp[col_idx][row_idx] = *elem;
@@ -42,12 +42,12 @@ impl Matrix4D {
         Matrix4D { data: tmp }
     }
 
-    pub fn minor(&self, row_idx: usize, col_idx: usize) -> f32 {
+    pub fn minor(&self, row_idx: usize, col_idx: usize) -> f64 {
         let submatrix = self.submatrix(row_idx, col_idx);
         submatrix.det()
     }
 
-    pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f32 {
+    pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f64 {
         let minor_value = self.minor(row_idx, col_idx);
         if (row_idx + col_idx) % 2 == 0 {
             minor_value
@@ -56,8 +56,8 @@ impl Matrix4D {
         }
     }
 
-    pub fn det(&self) -> f32 {    
-        let mut result: f32 = 0.0;
+    pub fn det(&self) -> f64 {    
+        let mut result: f64 = 0.0;
         for i in 0..MATRIX_SIZE {
             result += self.cofactor(0, i) * self[(0, i)];
         }
@@ -74,7 +74,7 @@ impl Matrix4D {
         }
 
         let det = self.det();
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
                 let c = self.cofactor(row_idx, col_idx);
@@ -86,7 +86,7 @@ impl Matrix4D {
     }
     
     pub fn submatrix(&self, row_idx_skip: usize, col_idx_skip: usize) -> Matrix3D {
-        let mut tmp: [[f32; MATRIX_SIZE - 1]; MATRIX_SIZE - 1] = [[0.0; MATRIX_SIZE - 1]; MATRIX_SIZE - 1];
+        let mut tmp: [[f64; MATRIX_SIZE - 1]; MATRIX_SIZE - 1] = [[0.0; MATRIX_SIZE - 1]; MATRIX_SIZE - 1];
     
         let mut row_idx: usize = 0;
         let mut col_idx: usize = 0;
@@ -110,7 +110,7 @@ impl Matrix4D {
 }
 
 impl Index<(usize, usize)> for Matrix4D {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, idx_pair: (usize, usize)) -> &Self::Output {
         &self.data[idx_pair.0][idx_pair.1]
@@ -122,7 +122,7 @@ impl Mul<Matrix4D> for Matrix4D {
     type Output = Matrix4D;
 
     fn mul(self, rhs: Matrix4D) -> Self::Output {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, col) in rhs.transpose().data.iter().enumerate() {
                 for (r, c) in row.iter().zip(col.iter()) {
@@ -139,7 +139,7 @@ impl Mul<Tuple> for Matrix4D {
     type Output = Tuple;
 
     fn mul(self, rhs: Tuple) -> Self::Output {
-        let mut tmp: [f32; 4] = [0.0; 4];
+        let mut tmp: [f64; 4] = [0.0; 4];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (r, c) in row.iter().zip(rhs.into_iter()) {
                 tmp[row_idx] += r * c;
@@ -168,17 +168,17 @@ impl Mul<Vector> for Matrix4D {
 }
 
 impl AbsDiffEq for Matrix4D {
-    type Epsilon = f32;
+    type Epsilon = f64;
 
     fn default_epsilon() -> Self::Epsilon {
-        f32::default_epsilon()
+        f64::default_epsilon()
     }
 
-    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+    fn abs_diff_eq(&self, other: &Self, epsilon: f64) -> bool {
         let mut result = true;
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
-                result = result && f32::abs_diff_eq(&self[(row_idx, col_idx)], &other[(row_idx, col_idx)], epsilon);
+                result = result && f64::abs_diff_eq(&self[(row_idx, col_idx)], &other[(row_idx, col_idx)], epsilon);
             }
         }
 
@@ -188,15 +188,15 @@ impl AbsDiffEq for Matrix4D {
 
 impl RelativeEq for Matrix4D {
 
-    fn default_max_relative() -> f32 {
-        f32::default_max_relative()
+    fn default_max_relative() -> f64 {
+        f64::default_max_relative()
     }
 
-    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+    fn relative_eq(&self, other: &Self, epsilon: f64, max_relative: f64) -> bool {
         let mut result = true;
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
-                result = result && f32::relative_eq(&self[(row_idx, col_idx)], &other[(row_idx, col_idx)], epsilon, max_relative);
+                result = result && f64::relative_eq(&self[(row_idx, col_idx)], &other[(row_idx, col_idx)], epsilon, max_relative);
             }
         }
 
@@ -461,7 +461,7 @@ mod tests {
             [-0.6923077, -0.6923077, -0.7692308, -1.9230769]]
         );
 
-        assert_relative_eq!(&m1.inverse().unwrap(), &m1_inv);
+        assert_relative_eq!(&m1.inverse().unwrap(), &m1_inv, epsilon=1e-6);
 
         let m1 = Matrix4D::new(
             [[9.0, 3.0, 0.0, 9.0],
@@ -477,7 +477,7 @@ mod tests {
             [0.17777778, 0.06666667, -0.26666668, 0.33333334]]
         );
 
-        assert_eq!(&m1.inverse().unwrap(), &m1_inv);
+        assert_relative_eq!(&m1.inverse().unwrap(), &m1_inv, epsilon=1e-6);
 
         let m1 = Matrix4D::new(
             [[3.0, -9.0, 7.0, 3.0],

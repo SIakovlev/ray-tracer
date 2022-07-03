@@ -66,9 +66,9 @@ fn sphere_shadow_example() {
     let mut c = canvas::Canvas::new(canvas_pixels, canvas_pixels);
     let sphere_origin = Point::new(0.0, 0.0, 0.0);
     let ray_origin = Point::new(0.0, 0.0, -5.0);
-    let wall_z: f32 = 100.0;
-    let wall_size: f32 = 70.0;
-    let pixel_size = wall_size / canvas_pixels as f32;
+    let wall_z: f64 = 100.0;
+    let wall_size: f64 = 70.0;
+    let pixel_size = wall_size / canvas_pixels as f64;
     let half = wall_size / 2.0;
 
     let mut shape = Sphere::new(sphere_origin);
@@ -80,9 +80,9 @@ fn sphere_shadow_example() {
     let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::new(1.0, 1.0, 1.0));
 
     for y in 0..canvas_pixels {
-        let world_y = half - pixel_size * y as f32;
+        let world_y = half - pixel_size * y as f64;
         for x in 0..canvas_pixels {
-            let world_x = -half + pixel_size * x as f32;
+            let world_x = -half + pixel_size * x as f64;
             let position = Point::new(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin, (position - ray_origin).normalise());
             // compute intersections first
@@ -97,7 +97,7 @@ fn sphere_shadow_example() {
                     let point = r.position(hit_value.t);
                     let normal = hit_value.object.normal_at(point);
                     let eye = -r.direction;
-                    let color = shape.material.lighting(&light, &point, &eye, &normal);
+                    let color = shape.material.lighting(&light, &point, &eye, &normal, false);
 
                     c.write_pixel(x, y, color);
                 },
@@ -112,9 +112,9 @@ fn sphere_shadow_example() {
 fn sphere_scene_example() {
     use spheres::Sphere;
     use color::Color;
-    use std::f32;
+    use std::f64;
 
-    let mut camera = Camera::new(1000.0, 500.0, f32::consts::PI/3.0);
+    let mut camera = Camera::new(1000.0, 500.0, f64::consts::PI/3.0);
     camera.transform = view_transform(
         Point::new(0.0, 1.5, -5.0), 
         Point::new(0.0, 1.0, 0.0), 
@@ -129,16 +129,16 @@ fn sphere_scene_example() {
     // creat left wall
     let mut left_wall = Sphere::default();
     left_wall.transform = translation(0.0, 0.0, 5.0) 
-        * rotation_y(-f32::consts::PI/4.0) 
-        * rotation_x(f32::consts::PI/2.0) 
+        * rotation_y(-f64::consts::PI/4.0) 
+        * rotation_x(f64::consts::PI/2.0) 
         * scaling(10.0, 0.01, 10.0);
     left_wall.material = floor.material;
 
     // create right wall
     let mut right_wall = Sphere::default();
     right_wall.transform = translation(0.0, 0.0, 5.0) 
-        * rotation_y(f32::consts::PI/4.0) 
-        * rotation_x(f32::consts::PI/2.0) 
+        * rotation_y(f64::consts::PI/4.0) 
+        * rotation_x(f64::consts::PI/2.0) 
         * scaling(10.0, 0.01, 10.0);
     right_wall.material = floor.material;
 

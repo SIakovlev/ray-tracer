@@ -6,17 +6,17 @@ const MATRIX_SIZE: usize = 3;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Matrix3D {
-    pub data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]
+    pub data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]
 }
 
 impl Matrix3D {
-    pub fn new(data: [[f32; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
+    pub fn new(data: [[f64; MATRIX_SIZE]; MATRIX_SIZE]) -> Self {
         Matrix3D { data: data }
     }
 
     // construct identity matrix
     pub fn identity() -> Self {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for row_idx in 0..MATRIX_SIZE {
             for col_idx in 0..MATRIX_SIZE {
                 if row_idx == col_idx {
@@ -28,7 +28,7 @@ impl Matrix3D {
     }
 
     pub fn transpose(&self) -> Matrix3D {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, elem) in row.iter().enumerate() {
                 tmp[col_idx][row_idx] = *elem;
@@ -38,12 +38,12 @@ impl Matrix3D {
         Matrix3D { data: tmp }
     }
 
-    pub fn minor(&self, row_idx: usize, col_idx: usize) -> f32 {
+    pub fn minor(&self, row_idx: usize, col_idx: usize) -> f64 {
         let submatrix = self.submatrix(row_idx, col_idx);
         submatrix.det()
     }
 
-    pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f32 {
+    pub fn cofactor(&self, row_idx: usize, col_idx: usize) -> f64 {
         let minor_value = self.minor(row_idx, col_idx);
         if (row_idx + col_idx) % 2 == 0 {
             minor_value
@@ -52,8 +52,8 @@ impl Matrix3D {
         }
     }
 
-    pub fn det(&self) -> f32 {    
-        let mut result: f32 = 0.0;
+    pub fn det(&self) -> f64 {    
+        let mut result: f64 = 0.0;
         for i in 0..MATRIX_SIZE {
             result += self.cofactor(0, i) * self[(0, i)];
         }
@@ -62,7 +62,7 @@ impl Matrix3D {
     
     pub fn submatrix(&self, row_idx_skip: usize, col_idx_skip: usize) -> Matrix2D {
 
-        let mut tmp: [[f32; MATRIX_SIZE - 1]; MATRIX_SIZE - 1] = [[0.0; MATRIX_SIZE - 1]; MATRIX_SIZE - 1];
+        let mut tmp: [[f64; MATRIX_SIZE - 1]; MATRIX_SIZE - 1] = [[0.0; MATRIX_SIZE - 1]; MATRIX_SIZE - 1];
 
         let mut row_idx: usize = 0;
         let mut col_idx: usize = 0;
@@ -87,7 +87,7 @@ impl Matrix3D {
 }
 
 impl Index<(usize, usize)> for Matrix3D {
-    type Output = f32;
+    type Output = f64;
 
     fn index(&self, idx_pair: (usize, usize)) -> &Self::Output {
         &self.data[idx_pair.0][idx_pair.1]
@@ -99,7 +99,7 @@ impl Mul<Matrix3D> for Matrix3D {
     type Output = Matrix3D;
 
     fn mul(self, rhs: Matrix3D) -> Self::Output {
-        let mut tmp: [[f32; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
+        let mut tmp: [[f64; MATRIX_SIZE]; MATRIX_SIZE] = [[0.0; MATRIX_SIZE]; MATRIX_SIZE];
 
         for (row_idx, row) in self.data.iter().enumerate() {
             for (col_idx, col) in rhs.transpose().data.iter().enumerate() {

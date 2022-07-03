@@ -9,7 +9,7 @@ pub struct Vector {
 }
 
 impl Vector {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { 
             tuple: Tuple::new(x, y, z, 0.0) 
         }
@@ -20,7 +20,7 @@ impl Vector {
         }
     }
 
-    pub fn magnitude(&self) -> f32 {
+    pub fn magnitude(&self) -> f64 {
         self.tuple.abs()
     }
 
@@ -28,7 +28,7 @@ impl Vector {
         *self / self.magnitude()
     }
 
-    pub fn dot(&self, rhs: &Vector) -> f32 {
+    pub fn dot(&self, rhs: &Vector) -> f64 {
         self.tuple.dot(rhs.tuple)
     }
 
@@ -60,18 +60,18 @@ impl Sub<Vector> for Vector {
     }
 }
 
-impl Div<f32> for Vector {
+impl Div<f64> for Vector {
     type Output = Self;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: f64) -> Self::Output {
         Vector { tuple: self.tuple / rhs }
     }
 }
 
-impl Mul<f32> for Vector {
+impl Mul<f64> for Vector {
     type Output = Self;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Vector { tuple: self.tuple * rhs }
     }
 }
@@ -87,24 +87,24 @@ impl Neg for Vector {
 }
 
 impl AbsDiffEq for Vector {
-    type Epsilon = f32;
+    type Epsilon = f64;
 
     fn default_epsilon() -> Self::Epsilon {
-        f32::default_epsilon()
+        f64::default_epsilon()
     }
 
-    fn abs_diff_eq(&self, other: &Self, epsilon: f32) -> bool {
+    fn abs_diff_eq(&self, other: &Self, epsilon: f64) -> bool {
         Tuple::abs_diff_eq(&self.tuple, &other.tuple, epsilon)
     }
 }
 
 impl RelativeEq for Vector {
 
-    fn default_max_relative() -> f32 {
-        f32::default_max_relative()
+    fn default_max_relative() -> f64 {
+        f64::default_max_relative()
     }
 
-    fn relative_eq(&self, other: &Self, epsilon: f32, max_relative: f32) -> bool {
+    fn relative_eq(&self, other: &Self, epsilon: f64, max_relative: f64) -> bool {
         Tuple::relative_eq(&self.tuple, &other.tuple, epsilon, max_relative)
     }
 }
@@ -136,16 +136,16 @@ mod tests {
     #[test]
     fn magnitude_of_vector() {
         let v = Vector::new(1.0, 2.0, 3.0);
-        approx::assert_relative_eq!(v.magnitude(), f32::sqrt(14.0));
+        approx::assert_relative_eq!(v.magnitude(), f64::sqrt(14.0));
 
         let v = Vector::new(-1.0, -2.0, -3.0);
-        approx::assert_relative_eq!(v.magnitude(), f32::sqrt(14.0));
+        approx::assert_relative_eq!(v.magnitude(), f64::sqrt(14.0));
 
         let v = Vector::new(1.0, 0.0, 0.0);
         approx::assert_relative_eq!(v.magnitude(), 1.0);
 
         let v = Vector::new(1.0, 0.0, 1.0);
-        approx::assert_relative_eq!(v.magnitude(), f32::sqrt(2.0));
+        approx::assert_relative_eq!(v.magnitude(), f64::sqrt(2.0));
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod tests {
         approx::assert_relative_eq!(r, Vector::new(1.0, 1.0, 0.0));
 
         let v1 = Vector::new(0.0, -1.0, 0.0);
-        let n1 = Vector::new( 2.0f32.sqrt() / 2.0, 2.0f32.sqrt() / 2.0, 0.0);
+        let n1 = Vector::new( 2.0f64.sqrt() / 2.0, 2.0f64.sqrt() / 2.0, 0.0);
         let r = v1.reflect(n1);
         approx::assert_relative_eq!(r, Vector::new(1.0, 0.0, 0.0));
     }
