@@ -12,7 +12,7 @@ mod ray;
 mod intersection;
 mod lights;
 mod materials;
-mod spheres;
+mod shapes;
 mod world;
 mod camera;
 
@@ -57,10 +57,11 @@ fn projectile_example() {
 fn sphere_shadow_example() {
 
     use intersection::hit;
-    use spheres::Sphere;
+    use shapes::spheres::Sphere;
     use point::Point;
     use color::Color;
     use ray::Ray;
+    use shapes::shape::ConcreteShape;
 
     let canvas_pixels: usize = 1000;
     let mut c = canvas::Canvas::new(canvas_pixels, canvas_pixels);
@@ -72,8 +73,8 @@ fn sphere_shadow_example() {
     let half = wall_size / 2.0;
 
     let mut shape = Sphere::new(sphere_origin);
-    shape.material = Material::default();
-    shape.material.color = Color::new(1.0, 0.2, 1.0);
+    shape.set_material(Material::default());
+    shape.get_material().color = Color::new(1.0, 0.2, 1.0);
 
     // let light_position = Point::new(-10.0, 10.0, -10.0);
     // let light_color = Color::new(1.0, 1.0, 1.0);
@@ -86,7 +87,7 @@ fn sphere_shadow_example() {
             let position = Point::new(world_x, world_y, wall_z);
             let r = Ray::new(ray_origin, (position - ray_origin).normalise());
             // compute intersections first
-            let mut xs = match r.intersection(&shape) {
+            let mut xs = match shape.intersects(&r) {
                 Ok(value) => value,
                 Err(err) => panic!("{}", &err),
             };
@@ -97,7 +98,7 @@ fn sphere_shadow_example() {
                     let point = r.position(hit_value.t);
                     let normal = hit_value.object.normal_at(point);
                     let eye = -r.direction;
-                    let color = shape.material.lighting(&light, &point, &eye, &normal, false);
+                    let color = shape.material().lighting(&light, &point, &eye, &normal, false);
 
                     c.write_pixel(x, y, color);
                 },
@@ -110,8 +111,9 @@ fn sphere_shadow_example() {
 }
 
 fn sphere_scene_example() {
-    use spheres::Sphere;
+    use shapes::spheres::Sphere;
     use color::Color;
+    use shapes::shape::ConcreteShape;
     use std::f64;
 
     let mut camera = Camera::new(1000.0, 500.0, f64::consts::PI/3.0);
@@ -122,43 +124,43 @@ fn sphere_scene_example() {
 
     // create floor
     let mut floor = Sphere::default();
-    floor.transform = scaling(10.0, 0.01, 10.0);
-    floor.material.color = Color::new(1.0, 0.9, 0.9);
-    floor.material.specular = 0.0;
+    floor.set_transform(scaling(10.0, 0.01, 10.0));
+    floor.get_material().color = Color::new(1.0, 0.9, 0.9);
+    floor.get_material().specular = 0.0;
 
     // creat left wall
     let mut left_wall = Sphere::default();
-    left_wall.transform = translation(0.0, 0.0, 5.0) 
+    left_wall.set_transform(translation(0.0, 0.0, 5.0) 
         * rotation_y(-f64::consts::PI/4.0) 
         * rotation_x(f64::consts::PI/2.0) 
-        * scaling(10.0, 0.01, 10.0);
-    left_wall.material = floor.material;
+        * scaling(10.0, 0.01, 10.0));
+    left_wall.set_material(*floor.material());
 
     // create right wall
     let mut right_wall = Sphere::default();
-    right_wall.transform = translation(0.0, 0.0, 5.0) 
+    right_wall.set_transform(translation(0.0, 0.0, 5.0) 
         * rotation_y(f64::consts::PI/4.0) 
         * rotation_x(f64::consts::PI/2.0) 
-        * scaling(10.0, 0.01, 10.0);
-    right_wall.material = floor.material;
+        * scaling(10.0, 0.01, 10.0));
+    right_wall.set_material(*floor.material());
 
     let mut middle = Sphere::default();
-    middle.transform = translation(-0.5, 1.0, 0.5);
-    middle.material.color = Color::new(0.1, 1.0, 0.5);
-    middle.material.diffuse = 0.7;
-    middle.material.specular = 0.3;
+    middle.set_transform(translation(-0.5, 1.0, 0.5));
+    middle.get_material().color = Color::new(0.1, 1.0, 0.5);
+    middle.get_material().diffuse = 0.7;
+    middle.get_material().specular = 0.3;
 
     let mut right = Sphere::default();
-    right.transform = translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5);
-    right.material.color = Color::new(0.5, 1.0, 0.1);
-    right.material.diffuse = 0.7;
-    right.material.specular = 0.3;
+    right.set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
+    right.get_material().color = Color::new(0.5, 1.0, 0.1);
+    right.get_material().diffuse = 0.7;
+    right.get_material().specular = 0.3;
 
     let mut left = Sphere::default();
-    left.transform = translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33);
-    left.material.color = Color::new(1.0, 0.8, 0.1);
-    left.material.diffuse = 0.7;
-    left.material.specular = 0.3;
+    left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
+    left.get_material().color = Color::new(1.0, 0.8, 0.1);
+    left.get_material().diffuse = 0.7;
+    left.get_material().specular = 0.3;
 
     let light = PointLight::new(
         Point::new(-10.0, 10.0, -10.0),

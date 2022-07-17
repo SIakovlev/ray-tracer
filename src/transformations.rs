@@ -1,5 +1,3 @@
-
-
 use crate::{matrix::matrix4d::Matrix4D, vector::Vector, point::Point};
 
 pub fn translation(x: f64, y: f64, z: f64) -> Matrix4D {
@@ -71,8 +69,6 @@ pub fn view_transform(from: Point, to: Point, up: Vector) -> Matrix4D {
 
 #[cfg(test)]
 mod tests {
-    use std::f64::EPSILON;
-
     use super::*;
     use crate::{point::Point, vector::Vector};
 

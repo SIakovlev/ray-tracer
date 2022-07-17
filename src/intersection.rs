@@ -1,8 +1,9 @@
 use crate::color::Color;
 use crate::lights::PointLight;
 use crate::{point::Point, matrix::matrix4d::Matrix4D, vector::Vector};
-use crate::spheres::Sphere;
+use crate::shapes::spheres::Sphere;
 
+#[derive(Debug)]
 pub struct IntersectionComputations<'a> {
     pub t: f64,
     pub object: &'a Sphere,
@@ -42,7 +43,8 @@ mod tests {
         vector::Vector,
         matrix::matrix4d::Matrix4D, 
         ray::Ray, 
-        transformations::*
+        transformations::*,
+        shapes::shape::ConcreteShape
     };
     use super::{Sphere, Intersection, hit};
 
@@ -84,39 +86,12 @@ mod tests {
     fn obj_transformations() {
         let s = Sphere::new(Point::new(0.0, 0.0, 0.0));
         let t = Matrix4D::identity();
-        assert_eq!(s.transform, t);
+        assert_eq!(s.transform(), &t);
 
         let mut s = Sphere::new(Point::new(0.0, 0.0, 0.0));
         let t = translation(2.0, 3.0, 4.0);
         s.set_transform(t);
-        assert_eq!(s.transform, t);
-    }
-
-    #[test]
-    fn intersecting_scaled_sphere() -> Result<(), String> {
-        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        
-        let mut s = Sphere::new(Point::new(0.0, 0.0, 0.0));
-        s.set_transform(scaling(2.0, 2.0, 2.0));
-        let xs = r.intersection(&s)?;
-
-        assert_eq!(xs.len(), 2);
-        assert_eq!(xs[0].t, 3.0);
-        assert_eq!(xs[1].t, 7.0);
-
-        // intersection does not modify a ray
-        assert_eq!(r.origin, Point::new(0.0, 0.0, -5.0));
-        assert_eq!(r.direction, Vector::new(0.0, 0.0, 1.0));
-
-        // intersection with shifted sphere
-        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        
-        let mut s = Sphere::new(Point::new(0.0, 0.0, 0.0));
-        s.set_transform(translation(5.0, 0.0, 0.0));
-        let xs = r.intersection(&s)?;
-        assert_eq!(xs.len(), 0);
-
-        Ok(())
+        assert_eq!(s.transform(), &t);
     }
 }
 
