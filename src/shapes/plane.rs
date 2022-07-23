@@ -15,7 +15,7 @@ impl Plane {
 }
 
 impl ConcreteShape for Plane {
-    
+
     #[allow(unused_variables)]
     fn local_normal_at(&self, point: Point) -> Vector {
         Vector::new(0.0, 1.0, 0.0)
@@ -23,7 +23,7 @@ impl ConcreteShape for Plane {
 
     fn local_intersect<'a>(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String> {
         let mut is = Vec::new();
-        if ray.direction.tuple.y < f64::EPSILON {
+        if ray.direction.tuple.y.abs() < f64::EPSILON {
             Ok(is)
         } else {
             let t = -ray.origin.tuple.y / ray.direction.tuple.y;
@@ -44,5 +44,53 @@ impl ConcreteShape for Plane {
 impl Default for Plane {
     fn default() -> Self {
         Self { shape: Shape::new(Point::new(0.0, 0.0, 0.0)) }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{shapes::shape::ConcreteShape, point::Point, vector::Vector, ray::Ray};
+    use super::Plane;
+
+    #[test]
+    fn test_normal_at() {
+        let p = Plane::default();
+
+        let n1 = p.normal_at(Point::new(0.0, 0.0, 0.0));
+        let n2 = p.normal_at(Point::new(10.0, 0.0, -10.0));
+        let n3 = p.normal_at(Point::new(-5.0, 0.0, 150.0));
+
+        let n = Vector::new(0.0, 1.0, 0.0);
+        assert_eq!(n1, n);
+        assert_eq!(n2, n);
+        assert_eq!(n3, n);
+    }
+
+    #[test]
+    fn test_intersections() {
+        // ray is parallel to the plane
+        let p = Plane::default();
+        let r = Ray::new(Point::new(0.0, 10.0, 0.0), Vector::new(0.0, 0.0, 1.0));
+        let xs = p.local_intersect(r).unwrap();
+
+        assert_eq!(xs.len(), 0);
+
+        // ray is coplanar to the plane
+        let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
+        let xs = p.local_intersect(r).unwrap();
+        assert_eq!(xs.len(), 0);
+
+        // ray intersecting plane from above and below
+        let r = Ray::new(Point::new(0.0, 1.0, 0.0), Vector::new(0.0, -1.0, 0.0));
+        let xs = p.local_intersect(r).unwrap();
+        assert_eq!(xs.len(), 1);
+        assert_eq!(xs[0].t, 1.0);
+        assert_eq!(xs[0].object, &p as &dyn ConcreteShape);
+
+        let r = Ray::new(Point::new(0.0, -1.0, 0.0), Vector::new(0.0, 1.0, 0.0));
+        let xs = p.local_intersect(r).unwrap();
+        assert_eq!(xs.len(), 1);
+        assert_eq!(xs[0].t, 1.0);
+        assert_eq!(xs[0].object, &p as &dyn ConcreteShape);
     }
 }

@@ -111,7 +111,7 @@ fn sphere_shadow_example() {
 }
 
 fn sphere_scene_example() {
-    use shapes::spheres::Sphere;
+    use shapes::{spheres::Sphere, plane::Plane};
     use color::Color;
     use shapes::shape::ConcreteShape;
     use std::f64;
@@ -123,8 +123,7 @@ fn sphere_scene_example() {
         Vector::new(0.0, 1.0, 0.0));
 
     // create floor
-    let mut floor = Sphere::default();
-    floor.set_transform(scaling(10.0, 0.01, 10.0));
+    let mut floor = Plane::default();
     floor.get_material().color = Color::new(1.0, 0.9, 0.9);
     floor.get_material().specular = 0.0;
 
