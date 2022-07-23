@@ -25,6 +25,7 @@ impl Tuple {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 
+    #[allow(non_snake_case)]
     pub fn cross_3D(&self, rhs: Tuple) -> Self {
         Self {
             x: self.y * rhs.z - self.z * rhs.y,

@@ -103,6 +103,8 @@ mod tests {
             Point::new(0.0, 0.0, -10.0), 
             Color::new(1.0, 1.0, 1.0)
         );
+        let result = m.lighting(&light, &position, &eye, &n, false);
+        approx::assert_relative_eq!(result, Color::new(1.0, 1.0, 1.0));
 
         // Lighting with the surface in shadow
         let eye = Vector::new(0.0, 0.0, -1.0);

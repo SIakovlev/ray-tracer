@@ -1,5 +1,5 @@
 use crate::{
-    shapes::spheres::Sphere, 
+    shapes::{spheres::Sphere, plane::Plane}, 
     lights::PointLight, 
     point::Point, 
     color::Color, 
@@ -9,18 +9,19 @@ use crate::{
     shapes::shape::ConcreteShape,
 };
 
-#[derive(Debug)]
+// #[derive(Debug)]
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Box<dyn ConcreteShape>>,
     pub light: PointLight,
 }
 
 impl World {
-    pub fn new(objects: Vec<Sphere>, light: PointLight) -> Self {
+    pub fn new(objects: Vec<Box<dyn ConcreteShape>>, light: PointLight) -> Self {
         Self { objects: objects, light: light }
     }
 
-    pub fn shade_hit(&self, comps: &IntersectionComputations) -> Color {
+    pub fn shade_hit(&self, comps: &IntersectionComputations) -> Color 
+    {
         let in_shadow = self.is_shadowed(comps.over_point).unwrap();
         comps.object.material().lighting(&self.light, &comps.over_point, &comps.eye, &comps.normal, in_shadow)
     }
@@ -71,7 +72,7 @@ impl Default for World {
         let mut s2 = Sphere::default();
         s2.set_transform(scaling(0.5, 0.5, 0.5));
 
-        Self { objects: vec![s1, s2], light: light }
+        Self { objects: vec![Box::new(s1), Box::new(s2)], light: light }
     }
 }
 
@@ -105,13 +106,12 @@ mod tests {
         approx::assert_relative_eq!(xs[2].t, 5.5);
         approx::assert_relative_eq!(xs[3].t, 6.0);
     }
-
+    
     #[test]
     fn shade_hit_test() {
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
         let w = World::default();
-        let shape = &w.objects[0];
-        let i = Intersection::new(4.0, shape);
+        let i = Intersection::new(4.0, &*w.objects[0]);
         let computations = r.prepare_computations(&i);
         let c = w.shade_hit(&computations);
 
@@ -120,8 +120,7 @@ mod tests {
         let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
         let mut w = World::default();
         w.light = PointLight::new(Point::new(0.0, 0.25, 0.0), Color::new(1.0, 1.0, 1.0));
-        let shape = &w.objects[1];
-        let i = Intersection::new(0.5, shape);
+        let i = Intersection::new(0.5, &*w.objects[1]);
         let computations = r.prepare_computations(&i);
         let c = w.shade_hit(&computations);
 
@@ -131,15 +130,15 @@ mod tests {
         let mut s2 = Sphere::default();
         s2.set_transform(translation(0.0, 0.0, 10.0));
         let w = World::new(
-            vec![s1, s2],
+            vec![Box::new(s1), Box::new(s2)],
             PointLight::new(
                 Point::new(0.0, 0.0, -10.0), 
                 Color::new(1.0, 1.0, 1.0)
             )
         );
         let r = Ray::new(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));
+        let i = Intersection::new(4.0, &*w.objects[1]);
         let comps = r.prepare_computations(&i);
-        let i = Intersection::new(4.0, &w.objects[1]);
         let c = w.shade_hit(&comps);
 
         approx::assert_relative_eq!(c, Color::new(0.1, 0.1, 0.1));

@@ -1,4 +1,4 @@
-use crate::{point::Point, vector::Vector, matrix::matrix4d::Matrix4D, materials::Material, ray::Ray, intersection::Intersection, 
+use crate::{point::Point, vector::Vector, ray::Ray, intersection::Intersection, 
     shapes::shape::{ConcreteShape, Shape}};
 
 use approx::RelativeEq;
@@ -14,12 +14,13 @@ impl Sphere {
     }
 }
 
-impl<'a, 'b> ConcreteShape<'a, 'b> for Sphere {
+impl ConcreteShape for Sphere {
+
     fn local_normal_at(&self, point: Point) -> Vector {
         (point - *self.origin()).normalise()
     }
 
-    fn local_intersect(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String> {
+    fn local_intersect<'a>(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String> {
         let obj_to_ray = ray.origin - self.shape.origin;
 
         let a = ray.direction.dot(&ray.direction);
@@ -43,32 +44,12 @@ impl<'a, 'b> ConcreteShape<'a, 'b> for Sphere {
         Ok(is)
     }
 
-    fn material(&self) -> &Material {
-        &self.shape.material
+    fn shape(&self) -> &Shape {
+        &self.shape
     }
 
-    fn origin(&self) -> &Point {
-        &self.shape.origin
-    }
-
-    fn transform(&self) -> &Matrix4D {
-        &self.shape.transform
-    }
-
-    fn get_material(&mut self) -> &mut Material {
-        &mut self.shape.material
-    }
-
-    fn set_transform(&mut self, transform: Matrix4D) {
-        self.shape.transform = transform;
-    }
-
-    fn set_material(&mut self, material: Material) {
-        self.shape.material = material;
-    }
-
-    fn set_origin(&mut self, origin: Point) {
-        self.shape.origin = origin
+    fn get_shape(&mut self) -> &mut Shape {
+        &mut self.shape
     }
 }
 

@@ -1,4 +1,5 @@
-#![feature(adt_const_params, generic_const_exprs)]
+// #![feature(adt_const_params, generic_const_exprs)]
+#![allow(dead_code)]
 
 mod tuple;
 mod point;
@@ -58,7 +59,6 @@ fn sphere_shadow_example() {
 
     use intersection::hit;
     use shapes::spheres::Sphere;
-    use point::Point;
     use color::Color;
     use ray::Ray;
     use shapes::shape::ConcreteShape;
@@ -167,7 +167,8 @@ fn sphere_scene_example() {
         Color::new(1.0, 1.0, 1.0)
     );
 
-    let world = World::new(vec![floor, left_wall, right_wall, middle, right, left], light);
+    let world = World::new(vec![
+        Box::new(floor), Box::new(left_wall), Box::new(right_wall), Box::new(middle), Box::new(right), Box::new(left)], light);
     match camera.render(&world) {
         Ok(canvas) => canvas.to_ppm(255, "spheres.ppm"),
         Err(err) => println!("{}", err),

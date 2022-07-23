@@ -1,15 +1,14 @@
 use crate::{matrix::matrix4d::Matrix4D, point::Point, vector::Vector, materials::Material, ray::Ray, intersection::Intersection};
+use core::fmt::Debug;
 
-pub trait ConcreteShape<'a, 'b> {
-    fn intersects(&'a self, r: &'b Ray) -> Result<Vec<Intersection<'a>>, String>
-    {
+pub trait ConcreteShape {
+    fn intersects<'a, 'b>(&'a self, r: &'b Ray) -> Result<Vec<Intersection<'a>>, String> {
         let local_ray = r.transform(
             self.transform().inverse().expect("Cannot apply object transformation")
         );
         self.local_intersect(local_ray)
     }
-
-    fn local_intersect(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String>;
+    fn local_intersect<'a, 'b>(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String>;
 
     fn normal_at(&self, point: Point) -> Vector {
         let local_point = self.transform().inverse().unwrap() * point;
@@ -18,18 +17,56 @@ pub trait ConcreteShape<'a, 'b> {
         world_normal.tuple.w = 0.0;
         world_normal.normalise()
     }
-
     fn local_normal_at(&self, point: Point) -> Vector;
 
-    fn transform(&self) -> &Matrix4D;
-    fn material(&self) -> &Material;
-    fn origin(&self) -> &Point;
+    fn transform(&self) -> &Matrix4D {
+        &self.shape().transform
+    }
 
-    fn get_material(&mut self) -> &mut Material;
+    fn material(&self) -> &Material {
+        &self.shape().material
+    }
+    
+    fn origin(&self) -> &Point {
+        &self.shape().origin
+    }
 
-    fn set_transform(&mut self, transform: Matrix4D);
-    fn set_material(&mut self, material: Material);
-    fn set_origin(&mut self, origin: Point);
+    fn set_transform(&mut self, transform: Matrix4D) {
+        self.get_shape().transform = transform;
+    }
+    
+    fn set_material(&mut self, material: Material) {
+        self.get_shape().material = material
+    }
+    
+    fn get_material(&mut self) -> &mut Material {
+        &mut self.get_shape().material
+    }
+
+    fn set_origin(&mut self, origin: Point) {
+        self.get_shape().origin = origin
+    }
+
+    fn get_shape(&mut self) -> &mut Shape;
+    fn shape(&self) -> &Shape;
+}
+
+impl<'a> Debug for dyn ConcreteShape + 'a {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Shape. Origin: {:?}, Material: {:?}, Transform: {:?}", self.origin(), self.material(), self.transform())
+    }
+}
+
+impl<'a> PartialEq for dyn ConcreteShape + 'a {
+    fn eq(&self, other: &Self) -> bool {
+        self.transform() == other.transform() && self.origin() == other.origin() && self.material() == other.material()
+    }
+}
+
+impl<'a> PartialOrd for dyn ConcreteShape + 'a {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.shape().partial_cmp(other.shape())
+    }
 }
 
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -55,12 +92,9 @@ impl Default for Shape {
 mod tests {
 
     use crate::{
-        point::Point, 
-        vector::Vector,
         matrix::matrix4d::Matrix4D, 
-        ray::Ray, 
         transformations::*,
-        intersection::Intersection, materials::Material, color::Color,
+        materials::Material, color::Color,
     };
 
     use super::Shape;

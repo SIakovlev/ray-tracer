@@ -1,5 +1,5 @@
-use crate::{matrix::matrix4d::Matrix4D, transformations::*, point::Point, ray::Ray, world::World, canvas::Canvas};
-use std::{f64, fmt::Error};
+use crate::{matrix::matrix4d::Matrix4D, point::Point, ray::Ray, world::World, canvas::Canvas};
+use std::f64;
 
 #[derive(Debug)]
 pub struct Camera {

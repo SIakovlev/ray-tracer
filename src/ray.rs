@@ -1,6 +1,6 @@
 use crate::{
     point::Point, vector::Vector, intersection::{Intersection, IntersectionComputations},
-    matrix::matrix4d::Matrix4D, world::World, shapes::shape::ConcreteShape
+    matrix::matrix4d::Matrix4D, world::World
 };
 #[derive(Debug)]
 pub struct Ray {
@@ -8,7 +8,8 @@ pub struct Ray {
     pub direction: Vector
 }
 
-impl<'a, 'b> Ray {
+impl<'a, 'b> Ray
+{
     pub fn new(origin: Point, direction: Vector) -> Self {
         Ray { origin, direction }
     }
@@ -61,6 +62,7 @@ impl<'a, 'b> Ray {
 #[cfg(test)]
 mod tests {
     use crate::{transformations::translation, shapes::spheres::Sphere};
+    use crate::shapes::shape::ConcreteShape;
     use super::*;
 
     #[test]

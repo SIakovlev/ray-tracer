@@ -170,6 +170,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(non_snake_case)]
     fn chaining_test() {
         use std::f64;
         let p = Point::new(1.0, 0.0, 1.0);

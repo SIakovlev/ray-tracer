@@ -1,12 +1,9 @@
-use crate::color::Color;
-use crate::lights::PointLight;
-use crate::{point::Point, matrix::matrix4d::Matrix4D, vector::Vector};
-use crate::shapes::spheres::Sphere;
+use crate::{point::Point, vector::Vector, shapes::shape::ConcreteShape};
 
 #[derive(Debug)]
 pub struct IntersectionComputations<'a> {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub object: &'a dyn ConcreteShape,
     pub point: Point,
     pub over_point: Point,
     pub eye: Vector,
@@ -17,11 +14,12 @@ pub struct IntersectionComputations<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Intersection<'a> {
     pub t: f64,
-    pub object: &'a Sphere
+    pub object: &'a dyn ConcreteShape
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(t: f64, obj: &'a Sphere) -> Self {
+    pub fn new(t: f64, obj: &'a dyn ConcreteShape) -> Self 
+    {
         Intersection {t: t, object: obj}
     }
 }
@@ -39,14 +37,13 @@ mod tests {
     use std::vec;
 
     use crate::{
-        point::Point, 
-        vector::Vector,
-        matrix::matrix4d::Matrix4D, 
-        ray::Ray, 
+        point::Point,
+        matrix::matrix4d::Matrix4D,
         transformations::*,
-        shapes::shape::ConcreteShape
+        shapes::shape::ConcreteShape,
+        shapes::spheres::Sphere
     };
-    use super::{Sphere, Intersection, hit};
+    use super::{Intersection, hit};
 
     #[test]
     fn hit_test() {
