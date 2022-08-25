@@ -10,6 +10,7 @@ mod canvas;
 mod matrix;
 mod transformations;
 mod ray;
+mod patterns;
 mod intersection;
 mod lights;
 mod materials;
@@ -19,7 +20,7 @@ mod camera;
 
 use std::cmp;
 
-use crate::{materials::Material, lights::PointLight, transformations::*, world::World, camera::Camera, point::Point, vector::Vector};
+use crate::{materials::Material, lights::PointLight, transformations::*, world::World, camera::Camera, point::Point, vector::Vector, patterns::color_pattern::ColorPattern};
 
 fn projectile_example() {
     let start = point::Point::new(0.0, 1.0, 0.0);
@@ -98,7 +99,7 @@ fn sphere_shadow_example() {
                     let point = r.position(hit_value.t);
                     let normal = hit_value.object.normal_at(point);
                     let eye = -r.direction;
-                    let color = shape.material().lighting(&light, &point, &eye, &normal, false);
+                    let color = shape.material().lighting(&shape, &light, &point, &eye, &normal, false);
 
                     c.write_pixel(x, y, color);
                 },
@@ -144,6 +145,7 @@ fn sphere_scene_example() {
     right_wall.set_material(*floor.material());
 
     let mut middle = Sphere::default();
+    middle.get_material().pattern = Some(ColorPattern::new_stripe(Color::new(1.0, 1.0, 1.0), Color::new(0.0, 0.0, 0.0)));
     middle.set_transform(translation(-0.5, 1.0, 0.5));
     middle.get_material().color = Color::new(0.1, 1.0, 0.5);
     middle.get_material().diffuse = 0.7;

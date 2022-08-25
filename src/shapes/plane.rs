@@ -21,7 +21,7 @@ impl ConcreteShape for Plane {
         Vector::new(0.0, 1.0, 0.0)
     }
 
-    fn local_intersect<'a>(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String> {
+    fn local_intersect<'i>(&'i self, ray: Ray) -> Result<Vec<Intersection<'i>>, String> {
         let mut is = Vec::new();
         if ray.direction.tuple.y.abs() < f64::EPSILON {
             Ok(is)

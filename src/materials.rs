@@ -1,8 +1,9 @@
-use crate::{color::{Color}, lights::PointLight, point::Point, vector::Vector};
+use crate::{color::{Color}, lights::PointLight, point::Point, vector::Vector, patterns::color_pattern::ColorPattern, shapes::shape::ConcreteShape};
 use approx::{AbsDiffEq, RelativeEq};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub struct Material {
+    pub pattern: Option<ColorPattern>,
     pub color: Color,
     pub ambient: f64,
     pub diffuse: f64,
@@ -11,12 +12,18 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
-        Self {color: color, ambient: ambient, diffuse: diffuse, specular: specular, shininess: shininess}
+    pub fn new(pattern: Option<ColorPattern>, color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
+        Self {pattern: pattern, color: color, ambient: ambient, diffuse: diffuse, specular: specular, shininess: shininess}
     }
 
-    pub fn lighting(&self, light: &PointLight, point: &Point, eye: &Vector, normal: &Vector, in_shadow: bool) -> Color {
-        let effective_color = self.color * light.intensity;
+    pub fn lighting(&self, object: &dyn ConcreteShape, light: &PointLight, point: &Point, eye: &Vector, normal: &Vector, in_shadow: bool) -> Color {
+
+        let mut color = self.color;
+        if let Some(pattern) = self.pattern {
+            color = pattern.pattern_at_object(object, point);
+        } 
+
+        let effective_color = color * light.intensity;
         let light_dir = (light.position - *point).normalise();
 
         let ambient = effective_color * self.ambient;
@@ -39,7 +46,11 @@ impl Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Self { color: Color::new(1.0, 1.0, 1.0), ambient: 0.1, diffuse: 0.9, specular: 0.9, shininess: 200.0 }
+        Self { 
+            pattern: None, 
+            color: Color::new(1.0, 1.0, 1.0), 
+            ambient: 0.1, diffuse: 0.9, specular: 0.9, shininess: 200.0 
+        }
     }
 }
 
@@ -76,12 +87,13 @@ impl RelativeEq for Material {
 
 #[cfg(test)]
 mod tests {
-    use crate::{vector::Vector, lights::PointLight, color::Color, point::Point};
+    use crate::{vector::Vector, lights::PointLight, color::Color, point::Point, patterns::{color_pattern::ColorPattern}, shapes::spheres::Sphere};
 
     use super::Material;
 
     #[test]
     fn lighting_test() {
+        let s = Sphere::default();
         let m = Material::default();
         let position = Point::new(0.0, 0.0, 0.0);
 
@@ -93,7 +105,7 @@ mod tests {
             Color::new(1.0, 1.0, 1.0)
         );
 
-        let result = m.lighting(&light, &position, &eye, &n, false);
+        let result = m.lighting(&s, &light, &position, &eye, &n, false);
         approx::assert_relative_eq!(result, Color::new(1.9, 1.9, 1.9));
 
         // Lighting with the eye between the light and the surface, eye offset 45 deg
@@ -103,7 +115,7 @@ mod tests {
             Point::new(0.0, 0.0, -10.0), 
             Color::new(1.0, 1.0, 1.0)
         );
-        let result = m.lighting(&light, &position, &eye, &n, false);
+        let result = m.lighting(&s, &light, &position, &eye, &n, false);
         approx::assert_relative_eq!(result, Color::new(1.0, 1.0, 1.0));
 
         // Lighting with the surface in shadow
@@ -114,7 +126,7 @@ mod tests {
             Color::new(1.0, 1.0, 1.0)
         );
 
-        let result = m.lighting(&light, &position, &eye, &n, true);
+        let result = m.lighting(&s, &light, &position, &eye, &n, true);
         approx::assert_relative_eq!(result, Color::new(0.1, 0.1, 0.1));
 
         // Lighting with eye opposite surface
@@ -125,7 +137,7 @@ mod tests {
             Color::new(1.0, 1.0, 1.0)
         );
 
-        let result = m.lighting(&light, &position, &eye, &n, false);
+        let result = m.lighting(&s, &light, &position, &eye, &n, false);
         approx::assert_relative_eq!(result, Color::new(0.736396, 0.736396, 0.736396), epsilon=1e-5);
 
         // Lighting with eye in the path of the reflection vector
@@ -136,7 +148,7 @@ mod tests {
             Color::new(1.0, 1.0, 1.0)
         );
 
-        let result = m.lighting(&light, &position, &eye, &n, false);
+        let result = m.lighting(&s, &light, &position, &eye, &n, false);
         approx::assert_relative_eq!(result, Color::new(1.6363961030678928, 1.6363961030678928, 1.6363961030678928));
 
         // Lighting with light behind the surface
@@ -147,7 +159,25 @@ mod tests {
             Color::new(1.0, 1.0, 1.0)
         );
 
-        let result = m.lighting(&light, &position, &eye, &n, false);
+        let result = m.lighting(&s, &light, &position, &eye, &n, false);
         approx::assert_relative_eq!(result, Color::new(0.1, 0.1, 0.1));
+
+        // Lighting with pattern applied
+        let mut m1 = Material::default();
+        m1.pattern = Some(ColorPattern::new_stripe(Color::new(1.0, 1.0, 1.0), Color::new(0.0, 0.0, 0.0)));
+        m1.ambient = 1.0;
+        m1.diffuse = 0.0;
+        m1.specular = 0.0;
+        let eye = Vector::new(0.0, 0.0, -1.0);
+        let n = Vector::new(0.0, 0.0, -1.0);
+        let light = PointLight::new(
+            Point::new(0.0, 0.0, -10.0), 
+            Color::new(1.0, 1.0, 1.0)
+        );
+        let c1 = m1.lighting(&s, &light, &Point::new(0.9, 0.0, 0.0), &eye, &n, false);
+        let c2 = m1.lighting(&s, &light, &Point::new(1.1, 0.0, 0.0), &eye, &n, false);
+
+        approx::assert_relative_eq!(c1, Color::new(1.0, 1.0, 1.0));
+        approx::assert_relative_eq!(c2, Color::new(0.0, 0.0, 0.0));
     }
 }

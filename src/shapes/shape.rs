@@ -76,7 +76,7 @@ pub struct Shape {
     pub material: Material,
 }
 
-impl<'a, 'b> Shape {
+impl Shape {
     pub fn new(origin: Point) -> Self {
         Self { origin: origin, transform: Matrix4D::identity(), material: Material::default() }
     }

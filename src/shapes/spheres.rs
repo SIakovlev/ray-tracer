@@ -20,7 +20,7 @@ impl ConcreteShape for Sphere {
         (point - *self.origin()).normalise()
     }
 
-    fn local_intersect<'a>(&'a self, ray: Ray) -> Result<Vec<Intersection<'a>>, String> {
+    fn local_intersect<'i>(&'i self, ray: Ray) -> Result<Vec<Intersection<'i>>, String> {
         let obj_to_ray = ray.origin - self.shape.origin;
 
         let a = ray.direction.dot(&ray.direction);

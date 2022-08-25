@@ -23,7 +23,7 @@ impl World {
     pub fn shade_hit(&self, comps: &IntersectionComputations) -> Color 
     {
         let in_shadow = self.is_shadowed(comps.over_point).unwrap();
-        comps.object.material().lighting(&self.light, &comps.over_point, &comps.eye, &comps.normal, in_shadow)
+        comps.object.material().lighting(comps.object, &self.light, &comps.over_point, &comps.eye, &comps.normal, in_shadow)
     }
 
     pub fn color_at(&self, ray: &Ray) -> Result<Color, String> {
