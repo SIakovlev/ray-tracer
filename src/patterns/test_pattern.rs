@@ -3,19 +3,17 @@ use crate::{color::Color, point::Point, matrix::matrix4d::Matrix4D};
 use super::color_pattern::Pattern;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct StripePattern {
-    pub a: Color,
-    pub b: Color,
+pub struct TestPattern {
     pub transform: Matrix4D,
 }
 
-impl StripePattern {
-    pub fn new(a: Color, b: Color) -> Self {
-        StripePattern {a: a, b: b, transform: Matrix4D::identity()}
+impl TestPattern {
+    pub fn new() -> Self {
+        Self {transform: Matrix4D::identity()}
     }
 }
 
-impl Pattern for StripePattern {
+impl Pattern for TestPattern {
     fn transform(&self) -> &Matrix4D {
         &self.transform
     }
@@ -29,9 +27,6 @@ impl Pattern for StripePattern {
     }
 
     fn pattern_at(&self, point: &Point) -> Color {
-        match point.tuple.x.floor() as i64 % 2 {
-            0 => self.a,
-            _ => self.b
-        }
+        Color::new(point.tuple.x, point.tuple.y, point.tuple.z)
     }
 }
