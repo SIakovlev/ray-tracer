@@ -1,6 +1,6 @@
 use crate::{color::Color, point::Point, matrix::matrix4d::Matrix4D, shapes::shape::ConcreteShape};
 use core::fmt::Debug;
-use crate::{patterns::{stripe_pattern::StripePattern, test_pattern::TestPattern, gradient_pattern::GradientPattern, ring_pattern::RingPattern}};
+use crate::{patterns::{stripe_pattern::StripePattern, test_pattern::TestPattern, gradient_pattern::GradientPattern, ring_pattern::RingPattern, checker_pattern::CheckerPattern}};
 
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -8,7 +8,8 @@ pub enum ColorPattern {
     TestPattern(TestPattern),
     StripePattern(StripePattern),
     GradientPattern(GradientPattern),
-    RingPattern(RingPattern)
+    RingPattern(RingPattern),
+    CheckerPattern(CheckerPattern)
 }
 
 impl ColorPattern {
@@ -29,6 +30,10 @@ impl ColorPattern {
         Self::RingPattern(RingPattern::new(a, b))
     }
 
+    pub fn new_checker(a: Color, b: Color) -> Self {
+        Self::CheckerPattern(CheckerPattern::new(a, b))
+    }
+
     pub fn pattern_at_object<'a>(&self, object: &'a dyn ConcreteShape, point: &Point) -> Color {
         let obj_point = object.transform().inverse().expect("Could not invert object transform") * (*point);
         let pattern_point = self.transform().inverse().expect("Could not invert pattern transform") * obj_point;
@@ -43,7 +48,8 @@ impl Pattern for ColorPattern {
             Self::TestPattern(p) => p.transform(),
             Self::StripePattern(p) => p.transform(),
             Self::GradientPattern(p) => p.transform(),
-            Self::RingPattern(p) => p.transform()
+            Self::RingPattern(p) => p.transform(),
+            Self::CheckerPattern(p) => p.transform()
         }
     }
 
@@ -52,7 +58,8 @@ impl Pattern for ColorPattern {
             Self::TestPattern(p) => p.get_transform(),
             Self::StripePattern(p) => p.get_transform(),
             Self::GradientPattern(p) => p.get_transform(),
-            Self::RingPattern(p) => p.get_transform()
+            Self::RingPattern(p) => p.get_transform(),
+            Self::CheckerPattern(p) => p.get_transform()
         }
     }
 
@@ -61,7 +68,8 @@ impl Pattern for ColorPattern {
             Self::TestPattern(p) => p.set_transform(transform),
             Self::StripePattern(p) => p.set_transform(transform),
             Self::GradientPattern(p) => p.set_transform(transform),
-            Self::RingPattern(p) => p.set_transform(transform)
+            Self::RingPattern(p) => p.set_transform(transform),
+            Self::CheckerPattern(p) => p.set_transform(transform)
         }
     }
 
@@ -70,7 +78,8 @@ impl Pattern for ColorPattern {
             Self::TestPattern(p) => p.pattern_at(point),
             Self::StripePattern(p) => p.pattern_at(point),
             Self::GradientPattern(p) => p.pattern_at(point),
-            Self::RingPattern(p) => p.pattern_at(point)
+            Self::RingPattern(p) => p.pattern_at(point),
+            Self::CheckerPattern(p) => p.pattern_at(point)
         }
     }
 }
@@ -163,5 +172,27 @@ mod tests {
         assert_eq!(p.pattern_at(&Point::new(1.0, 0.0, 0.0)), black);
         assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 1.0)), black);
         assert_eq!(p.pattern_at(&Point::new(0.708, 0.0, 0.708)), black);
+    }
+
+    #[test]
+    fn test_checker_pattern() {
+        let white = Color::new(0.0, 0.0, 0.0);
+        let black = Color::new(1.0, 1.0, 1.0);
+
+        let p = ColorPattern::new_checker(white, black);
+        // repeat in x
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 0.0)), white);
+        assert_eq!(p.pattern_at(&Point::new(0.99, 0.0, 0.0)), white);
+        assert_eq!(p.pattern_at(&Point::new(1.01, 0.0, 0.0)), black);
+
+        // repeat in y
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 0.0)), white);
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.99, 0.0)), white);
+        assert_eq!(p.pattern_at(&Point::new(0.0, 1.01, 0.0)), black);
+
+        // repeat in z
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 0.0)), white);
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 0.99)), white);
+        assert_eq!(p.pattern_at(&Point::new(0.0, 0.0, 1.01)), black);
     }
 }
