@@ -8,6 +8,7 @@ pub struct IntersectionComputations<'a> {
     pub over_point: Point,
     pub eye: Vector,
     pub normal: Vector,
+    pub reflection_vector: Vector,
     pub inside: bool,
 }
 

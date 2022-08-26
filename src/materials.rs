@@ -5,6 +5,7 @@ use approx::{AbsDiffEq, RelativeEq};
 pub struct Material {
     pub pattern: Option<ColorPattern>,
     pub color: Color,
+    pub reflective: f64,
     pub ambient: f64,
     pub diffuse: f64,
     pub specular: f64,
@@ -12,8 +13,8 @@ pub struct Material {
 }
 
 impl Material {
-    pub fn new(pattern: Option<ColorPattern>, color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
-        Self {pattern: pattern, color: color, ambient: ambient, diffuse: diffuse, specular: specular, shininess: shininess}
+    pub fn new(pattern: Option<ColorPattern>, color: Color, reflective: f64, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
+        Self {pattern: pattern, color: color, reflective: reflective, ambient: ambient, diffuse: diffuse, specular: specular, shininess: shininess}
     }
 
     pub fn lighting(&self, object: &dyn ConcreteShape, light: &PointLight, point: &Point, eye: &Vector, normal: &Vector, in_shadow: bool) -> Color {
@@ -48,8 +49,8 @@ impl Default for Material {
     fn default() -> Self {
         Self { 
             pattern: None, 
-            color: Color::new(1.0, 1.0, 1.0), 
-            ambient: 0.1, diffuse: 0.9, specular: 0.9, shininess: 200.0 
+            color: Color::new(1.0, 1.0, 1.0),
+            reflective: 0.0, ambient: 0.1, diffuse: 0.9, specular: 0.9, shininess: 200.0 
         }
     }
 }
@@ -87,7 +88,7 @@ impl RelativeEq for Material {
 
 #[cfg(test)]
 mod tests {
-    use crate::{vector::Vector, lights::PointLight, color::Color, point::Point, patterns::{color_pattern::ColorPattern}, shapes::spheres::Sphere};
+    use crate::{vector::Vector, lights::PointLight, color::Color, point::Point, patterns::{color_pattern::ColorPattern}, shapes::{spheres::Sphere, plane::Plane}, ray::Ray, intersection::Intersection};
 
     use super::Material;
 
@@ -179,5 +180,14 @@ mod tests {
 
         approx::assert_relative_eq!(c1, Color::new(1.0, 1.0, 1.0));
         approx::assert_relative_eq!(c2, Color::new(0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn test_reflection_vector() {
+        let p = Plane::default();
+        let r = Ray::new(Point::new(0.0, 1.0, -1.0), Vector::new(0.0, -2.0_f64.sqrt()/2.0, 2.0_f64.sqrt()/2.0));
+        let i = Intersection::new(2.0_f64.sqrt(), &p);
+        let comps = r.prepare_computations(&i);
+        assert_eq!(comps.reflection_vector, Vector::new(0.0, 2.0_f64.sqrt()/2.0, 2.0_f64.sqrt()/2.0));
     }
 }

@@ -34,11 +34,13 @@ impl<'a, 'b> Ray
         let mut normal = intersection.object.normal_at(point);
         let eye = -self.direction;
         let mut inside = false;
-
+        
         if normal.dot(&eye) < 0.0 {
             inside = true;
             normal = -normal;
         }
+
+        let reflection_vector = self.direction.reflect(normal);
 
         IntersectionComputations {
             t: intersection.t,
@@ -47,6 +49,7 @@ impl<'a, 'b> Ray
             over_point: point + normal * 1e-6,
             eye: eye, 
             normal: normal,
+            reflection_vector: reflection_vector,
             inside: inside, 
         }
     }

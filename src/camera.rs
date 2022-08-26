@@ -64,7 +64,7 @@ impl Camera {
         for y in 0..self.vsize as usize {
             for x in 0..self.hsize as usize {
                 let r = self.ray_for_pixel(x as f64, y as f64);
-                let color = world.color_at(&r);
+                let color = world.color_at(&r, None);
                 match color {
                     Ok(color_value) => image.write_pixel(x, y, color_value),
                     Err(err) => return Err(err),

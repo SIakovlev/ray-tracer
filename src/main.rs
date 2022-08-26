@@ -127,25 +127,25 @@ fn sphere_scene_example() {
     let mut floor = Plane::default();
     floor.get_material().color = Color::new(1.0, 0.9, 0.9);
     floor.get_material().specular = 0.0;
+    floor.get_material().reflective = 0.1;
 
     // creat left wall
-    let mut left_wall = Sphere::default();
+    let mut left_wall = Plane::default();
     left_wall.set_transform(translation(0.0, 0.0, 5.0) 
         * rotation_y(-f64::consts::PI/4.0) 
-        * rotation_x(f64::consts::PI/2.0) 
-        * scaling(10.0, 0.01, 10.0));
+        * rotation_x(f64::consts::PI/2.0));
     left_wall.set_material(*floor.material());
+    left_wall.get_material().pattern = Some(ColorPattern::new_checker(Color::new(1.0, 1.0, 1.0), Color::new(0.0, 0.0, 0.0)));
 
     // create right wall
-    let mut right_wall = Sphere::default();
+    let mut right_wall = Plane::default();
     right_wall.set_transform(translation(0.0, 0.0, 5.0) 
         * rotation_y(f64::consts::PI/4.0) 
-        * rotation_x(f64::consts::PI/2.0) 
-        * scaling(10.0, 0.01, 10.0));
+        * rotation_x(f64::consts::PI/2.0));
     right_wall.set_material(*floor.material());
 
     let mut middle = Sphere::default();
-    middle.get_material().pattern = Some(ColorPattern::new_stripe(Color::new(1.0, 1.0, 1.0), Color::new(0.0, 0.0, 0.0)));
+    // middle.get_material().pattern = Some(ColorPattern::new_checker(Color::new(1.0, 1.0, 1.0), Color::new(0.0, 0.0, 0.0)));
     middle.set_transform(translation(-0.5, 1.0, 0.5));
     middle.get_material().color = Color::new(0.1, 1.0, 0.5);
     middle.get_material().diffuse = 0.7;
@@ -156,6 +156,7 @@ fn sphere_scene_example() {
     right.get_material().color = Color::new(0.5, 1.0, 0.1);
     right.get_material().diffuse = 0.7;
     right.get_material().specular = 0.3;
+    right.get_material().reflective = 0.1;
 
     let mut left = Sphere::default();
     left.set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
