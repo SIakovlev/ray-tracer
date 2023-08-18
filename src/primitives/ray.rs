@@ -67,7 +67,7 @@ mod tests {
 	use super::*;
 	use crate::{
 		primitives::transformations::*,
-		shapes::{shape::ConcreteShape, spheres::Sphere},
+		shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere},
 	};
 
 	#[test]
@@ -137,5 +137,22 @@ mod tests {
 		let comps = r.prepare_computations(&i);
 		assert!(comps.over_point.tuple.z < -f64::EPSILON / 2.0);
 		assert!(comps.point.tuple.z > comps.over_point.tuple.z);
+	}
+
+	#[test]
+	fn reflection_test() {
+		// hit default plane with ray under 45 deg angle and check reflected ray
+		let r = Ray::new(
+			Point::new(0.0, 1.0, -1.0),
+			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+		);
+		let s = Plane::default();
+		let i = Intersection::new(2.0_f64.sqrt(), &s);
+		let comps = r.prepare_computations(&i);
+
+		assert_eq!(
+			comps.reflection_vector,
+			Vector::new(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
+		);
 	}
 }

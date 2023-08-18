@@ -162,10 +162,6 @@ mod tests {
 		assert_eq!(p.pattern_at(&Point::new(0.25, 0.0, 0.0)), Color::new(0.25, 0.25, 0.25));
 		assert_eq!(p.pattern_at(&Point::new(0.5, 0.0, 0.0)), Color::new(0.5, 0.5, 0.5));
 		assert_eq!(p.pattern_at(&Point::new(0.75, 0.0, 0.0)), Color::new(0.75, 0.75, 0.75));
-		// in the book:
-		// assert_eq!(p.pattern_at(&Point::new(0.25, 0.0, 0.0)), Color::new(0.75, 0.75, 0.75));
-		// assert_eq!(p.pattern_at(&Point::new(0.5, 0.0, 0.0)), Color::new(0.5, 0.5, 0.5));
-		// assert_eq!(p.pattern_at(&Point::new(0.75, 0.0, 0.0)), Color::new(0.25, 0.25, 0.25));
 	}
 
 	#[test]

@@ -262,5 +262,29 @@ mod tests {
 		let comps = r.prepare_computations(&i);
 		let color = w.shade_hit(&comps, None);
 		approx::assert_relative_eq!(color, Color::new(0.87677, 0.92436, 0.82918), epsilon = 1e-4);
+
+		// shade hit, reflective surface max recursion depth
+		let color = w.reflected_color(&comps, Some(0));
+		assert_eq!(color, Color::new(0.0, 0.0, 0.0));
+	}
+
+	#[test]
+	fn test_inifinite_recursion_w_mutually_reflective_surfaces() {
+		let mut w = World::default();
+		w.light = PointLight::new(Point::new(0.0, 0.0, 0.0), Color::new(1.0, 1.0, 1.0));
+		let mut lower = Plane::default();
+		lower.get_material().reflective = 1.0;
+		lower.set_transform(translation(0.0, -1.0, 0.0));
+
+		let mut upper = Plane::default();
+		upper.get_material().reflective = 1.0;
+		upper.set_transform(translation(0.0, 1.0, 0.0));
+
+		w.objects.push(Box::new(lower));
+		w.objects.push(Box::new(upper));
+
+		let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));
+		let _ = w.color_at(&r, None);
+		assert!(true);
 	}
 }
