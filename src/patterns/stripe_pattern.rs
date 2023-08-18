@@ -1,38 +1,38 @@
-use crate::{color::Color, point::Point, matrix::matrix4d::Matrix4D};
+use crate::{color::Color, matrix::matrix4d::Matrix4D, point::Point};
 
 use super::color_pattern::Pattern;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct StripePattern {
-    pub a: Color,
-    pub b: Color,
-    pub transform: Matrix4D,
+	pub a: Color,
+	pub b: Color,
+	pub transform: Matrix4D,
 }
 
 impl StripePattern {
-    pub fn new(a: Color, b: Color) -> Self {
-        StripePattern {a: a, b: b, transform: Matrix4D::identity()}
-    }
+	pub fn new(a: Color, b: Color) -> Self {
+		StripePattern { a, b, transform: Matrix4D::identity() }
+	}
 }
 
 impl Pattern for StripePattern {
-    fn transform(&self) -> &Matrix4D {
-        &self.transform
-    }
+	fn transform(&self) -> &Matrix4D {
+		&self.transform
+	}
 
-    fn get_transform(&mut self) -> &mut Matrix4D {
-        &mut self.transform
-    }
+	fn get_transform(&mut self) -> &mut Matrix4D {
+		&mut self.transform
+	}
 
-    fn set_transform(&mut self, transform: Matrix4D) {
-        self.transform = transform
-    }
+	fn set_transform(&mut self, transform: Matrix4D) {
+		self.transform = transform
+	}
 
-    fn pattern_at(&self, point: &Point) -> Color {
-        let condition = point.tuple.x.floor() as i64 % 2;
-        match condition {
-            0 => self.a,
-            _ => self.b
-        }
-    }
+	fn pattern_at(&self, point: &Point) -> Color {
+		let condition = point.tuple.x.floor() as i64 % 2;
+		match condition {
+			0 => self.a,
+			_ => self.b,
+		}
+	}
 }
