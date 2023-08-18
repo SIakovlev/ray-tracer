@@ -38,8 +38,7 @@ mod tests {
 
 	use super::*;
 	use crate::{
-		matrix::matrix4d::Matrix4D,
-		primitives::{point::Point, transformations::*},
+		primitives::{matrix::matrix4d::Matrix4D, point::Point, transformations::*},
 		shapes::{shape::ConcreteShape, spheres::Sphere},
 	};
 

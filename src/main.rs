@@ -1,7 +1,6 @@
 // #![feature(adt_const_params, generic_const_exprs)]
 #![allow(dead_code)]
 
-mod matrix;
 mod patterns;
 mod primitives;
 mod shapes;

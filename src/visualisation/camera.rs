@@ -1,6 +1,5 @@
 use crate::{
-	matrix::matrix4d::Matrix4D,
-	primitives::{point::Point, ray::Ray},
+	primitives::{matrix::matrix4d::Matrix4D, point::Point, ray::Ray},
 	visualisation::{canvas::Canvas, world::World},
 };
 use std::f64;

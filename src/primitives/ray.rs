@@ -1,7 +1,6 @@
 use crate::{
 	intersection::{Intersection, IntersectionComputations},
-	matrix::matrix4d::Matrix4D,
-	primitives::{point::Point, vector::Vector},
+	primitives::{matrix::matrix4d::Matrix4D, point::Point, vector::Vector},
 	visualisation::world::World,
 };
 #[derive(Debug)]

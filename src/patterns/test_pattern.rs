@@ -1,7 +1,4 @@
-use crate::{
-	matrix::matrix4d::Matrix4D,
-	primitives::{color::Color, point::Point},
-};
+use crate::primitives::{color::Color, matrix::matrix4d::Matrix4D, point::Point};
 
 use super::color_pattern::Pattern;
 

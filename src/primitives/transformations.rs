@@ -1,7 +1,4 @@
-use crate::{
-	matrix::matrix4d::Matrix4D,
-	primitives::{point::Point, vector::Vector},
-};
+use crate::primitives::{matrix::matrix4d::Matrix4D, point::Point, vector::Vector};
 
 pub fn translation(x: f64, y: f64, z: f64) -> Matrix4D {
 	Matrix4D::new([

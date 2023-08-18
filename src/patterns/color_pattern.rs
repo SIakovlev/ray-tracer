@@ -1,10 +1,9 @@
 use crate::{
-	matrix::matrix4d::Matrix4D,
 	patterns::{
 		checker_pattern::CheckerPattern, gradient_pattern::GradientPattern,
 		ring_pattern::RingPattern, stripe_pattern::StripePattern, test_pattern::TestPattern,
 	},
-	primitives::{color::Color, point::Point},
+	primitives::{color::Color, matrix::matrix4d::Matrix4D, point::Point},
 	shapes::shape::ConcreteShape,
 };
 use core::fmt::Debug;

@@ -1,7 +1,6 @@
 use crate::{
 	intersection::Intersection,
-	matrix::matrix4d::Matrix4D,
-	primitives::{point::Point, ray::Ray, vector::Vector},
+	primitives::{matrix::matrix4d::Matrix4D, point::Point, ray::Ray, vector::Vector},
 	visualisation::materials::Material,
 };
 use core::fmt::Debug;
@@ -107,10 +106,7 @@ impl Default for Shape {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{
-		matrix::matrix4d::Matrix4D,
-		primitives::{color::Color, transformations::*},
-	};
+	use crate::primitives::{color::Color, matrix::matrix4d::Matrix4D, transformations::*};
 
 	#[test]
 	fn basic_attributes() {
