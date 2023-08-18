@@ -1,7 +1,7 @@
 use approx::{AbsDiffEq, RelativeEq};
 use std::ops::{Index, Mul};
 
-use crate::{point::Point, tuple::Tuple, vector::Vector};
+use crate::primitives::{point::Point, tuple::Tuple, vector::Vector};
 
 use super::matrix3d::Matrix3D;
 
@@ -216,6 +216,7 @@ impl RelativeEq for Matrix4D {
 
 #[cfg(test)]
 mod tests {
+	use crate::primitives::tuple::Tuple;
 	use approx::assert_relative_eq;
 
 	use super::Matrix4D;
@@ -322,8 +323,6 @@ mod tests {
 
 	#[test]
 	fn multiply_by_tuple() {
-		use crate::tuple::Tuple;
-
 		let m1 = Matrix4D::new([
 			[1.0, 2.0, 3.0, 4.0],
 			[2.0, 4.0, 4.0, 2.0],
@@ -340,8 +339,6 @@ mod tests {
 
 	#[test]
 	fn multiply_by_identity() {
-		use crate::tuple::Tuple;
-
 		let m1 = Matrix4D::new([
 			[1.0, 2.0, 3.0, 4.0],
 			[2.0, 4.0, 4.0, 2.0],
