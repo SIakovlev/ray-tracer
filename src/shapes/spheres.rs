@@ -1,9 +1,7 @@
 use crate::{
 	intersection::Intersection,
-	point::Point,
-	ray::Ray,
+	primitives::{point::Point, ray::Ray, vector::Vector},
 	shapes::shape::{ConcreteShape, Shape},
-	vector::Vector,
 };
 
 use approx::RelativeEq;
@@ -37,7 +35,7 @@ impl ConcreteShape for Sphere {
 
 		let mut is = Vec::new();
 
-		let discriminant = b * b - 4.0 * a * c;
+		let discriminant: f64 = b * b - 4.0 * a * c;
 		if discriminant >= 0.0 {
 			let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
 			let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
@@ -65,13 +63,11 @@ impl Default for Sphere {
 
 #[cfg(test)]
 mod tests {
+	use super::*;
 	use crate::{
-		materials::Material,
-		point::Point,
-		ray::Ray,
+		primitives::{ray::Ray, transformations::*, vector::Vector},
 		shapes::{shape::ConcreteShape, spheres::Sphere},
-		transformations::*,
-		vector::Vector,
+		visualisation::materials::Material,
 	};
 	use std::f64;
 

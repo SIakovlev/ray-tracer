@@ -1,4 +1,8 @@
-use crate::{canvas::Canvas, matrix::matrix4d::Matrix4D, point::Point, ray::Ray, world::World};
+use crate::{
+	matrix::matrix4d::Matrix4D,
+	primitives::{point::Point, ray::Ray},
+	visualisation::{canvas::Canvas, world::World},
+};
 use std::f64;
 
 #[derive(Debug)]
@@ -75,8 +79,8 @@ impl Camera {
 
 #[cfg(test)]
 mod tests {
-	use super::Camera;
-	use crate::{color::Color, point::Point, transformations::*, vector::Vector, world::World};
+	use super::*;
+	use crate::primitives::{color::Color, point::Point, transformations::*, vector::Vector};
 	use std::f64;
 
 	#[test]

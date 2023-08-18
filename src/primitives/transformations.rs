@@ -1,4 +1,7 @@
-use crate::{matrix::matrix4d::Matrix4D, point::Point, vector::Vector};
+use crate::{
+	matrix::matrix4d::Matrix4D,
+	primitives::{point::Point, vector::Vector},
+};
 
 pub fn translation(x: f64, y: f64, z: f64) -> Matrix4D {
 	Matrix4D::new([
@@ -73,7 +76,7 @@ pub fn view_transform(from: Point, to: Point, up: Vector) -> Matrix4D {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{point::Point, vector::Vector};
+	use crate::primitives::{point::Point, vector::Vector};
 
 	#[test]
 	fn translation_test() {

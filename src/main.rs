@@ -1,42 +1,37 @@
 // #![feature(adt_const_params, generic_const_exprs)]
 #![allow(dead_code)]
 
-mod camera;
-mod canvas;
-mod intersection;
-mod lights;
-mod materials;
 mod matrix;
 mod patterns;
 mod primitives;
-mod projectile;
-mod ray;
 mod shapes;
-mod transformations;
-mod world;
+mod visualisation;
 
 use std::cmp;
 
-use primitives::{color, point, vector};
-
-use crate::{
-	camera::Camera, lights::PointLight, materials::Material, patterns::color_pattern::ColorPattern,
-	transformations::*, world::World,
+use patterns::color_pattern::ColorPattern;
+use primitives::{
+	color::Color, point::Point, projectile, ray::Ray, transformations::*, vector::Vector,
+};
+use shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere};
+use visualisation::{
+	camera::Camera, canvas::Canvas, intersection, lights::PointLight, materials::Material,
+	world::World,
 };
 
 fn projectile_example() {
-	let start = point::Point::new(0.0, 1.0, 0.0);
-	let velocity = vector::Vector::new(1.0, 1.8, 0.0).normalise() * 10.25;
+	let start = Point::new(0.0, 1.0, 0.0);
+	let velocity = Vector::new(1.0, 1.8, 0.0).normalise() * 10.25;
 
 	let mut p = projectile::Projectile { position: start, velocity };
 
-	let gravity = vector::Vector::new(0.0, -0.1, 0.0);
-	let wind = vector::Vector::new(-0.01, 0.0, 0.0);
+	let gravity = Vector::new(0.0, -0.1, 0.0);
+	let wind = Vector::new(-0.01, 0.0, 0.0);
 
 	let e = projectile::Environment { gravity, wind };
 
-	let mut c = canvas::Canvas::new(900, 550);
-	let color_bullet = color::Color::new(1.0, 0.0, 0.0);
+	let mut c = Canvas::new(900, 550);
+	let color_bullet = Color::new(1.0, 0.0, 0.0);
 
 	let mut n_ticks = 0;
 	while p.position.tuple.y >= 0.0 {
@@ -53,15 +48,10 @@ fn projectile_example() {
 }
 
 fn sphere_shadow_example() {
-	use color::Color;
-	use intersection::hit;
-	use ray::Ray;
-	use shapes::{shape::ConcreteShape, spheres::Sphere};
-
 	let canvas_pixels: usize = 1000;
-	let mut c = canvas::Canvas::new(canvas_pixels, canvas_pixels);
-	let sphere_origin = point::Point::new(0.0, 0.0, 0.0);
-	let ray_origin = point::Point::new(0.0, 0.0, -5.0);
+	let mut c = Canvas::new(canvas_pixels, canvas_pixels);
+	let sphere_origin = Point::new(0.0, 0.0, 0.0);
+	let ray_origin = Point::new(0.0, 0.0, -5.0);
 	let wall_z: f64 = 100.0;
 	let wall_size: f64 = 70.0;
 	let pixel_size = wall_size / canvas_pixels as f64;
@@ -73,13 +63,13 @@ fn sphere_shadow_example() {
 
 	// let light_position = Point::new(-10.0, 10.0, -10.0);
 	// let light_color = Color::new(1.0, 1.0, 1.0);
-	let light = PointLight::new(point::Point::new(-10.0, 10.0, -10.0), Color::new(1.0, 1.0, 1.0));
+	let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::new(1.0, 1.0, 1.0));
 
 	for y in 0..canvas_pixels {
 		let world_y = half - pixel_size * y as f64;
 		for x in 0..canvas_pixels {
 			let world_x = -half + pixel_size * x as f64;
-			let position = point::Point::new(world_x, world_y, wall_z);
+			let position = Point::new(world_x, world_y, wall_z);
 			let r = Ray::new(ray_origin, (position - ray_origin).normalise());
 			// compute intersections first
 			let mut xs = match shape.intersects(&r) {
@@ -88,7 +78,7 @@ fn sphere_shadow_example() {
 			};
 
 			// check hits and depending on the result color corresponding pixels
-			match hit(&mut xs) {
+			match intersection::hit(&mut xs) {
 				Some(hit_value) => {
 					let point = r.position(hit_value.t);
 					let normal = hit_value.object.normal_at(point);
@@ -106,15 +96,11 @@ fn sphere_shadow_example() {
 }
 
 fn sphere_scene_example() {
-	use color::Color;
-	use shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere};
-	use std::f64;
-
-	let mut camera = Camera::new(1000.0, 500.0, f64::consts::PI / 3.0);
+	let mut camera = Camera::new(1000.0, 500.0, std::f64::consts::PI / 3.0);
 	camera.transform = view_transform(
-		point::Point::new(0.0, 1.5, -5.0),
-		point::Point::new(0.0, 1.0, 0.0),
-		vector::Vector::new(0.0, 1.0, 0.0),
+		Point::new(0.0, 1.5, -5.0),
+		Point::new(0.0, 1.0, 0.0),
+		Vector::new(0.0, 1.0, 0.0),
 	);
 
 	// create floor
@@ -127,8 +113,8 @@ fn sphere_scene_example() {
 	let mut left_wall = Plane::default();
 	left_wall.set_transform(
 		translation(0.0, 0.0, 5.0) *
-			rotation_y(-f64::consts::PI / 4.0) *
-			rotation_x(f64::consts::PI / 2.0),
+			rotation_y(-std::f64::consts::PI / 4.0) *
+			rotation_x(std::f64::consts::PI / 2.0),
 	);
 	left_wall.set_material(*floor.material());
 	left_wall.get_material().pattern =
@@ -138,8 +124,8 @@ fn sphere_scene_example() {
 	let mut right_wall = Plane::default();
 	right_wall.set_transform(
 		translation(0.0, 0.0, 5.0) *
-			rotation_y(f64::consts::PI / 4.0) *
-			rotation_x(f64::consts::PI / 2.0),
+			rotation_y(std::f64::consts::PI / 4.0) *
+			rotation_x(std::f64::consts::PI / 2.0),
 	);
 	right_wall.set_material(*floor.material());
 
@@ -164,7 +150,7 @@ fn sphere_scene_example() {
 	left.get_material().diffuse = 0.7;
 	left.get_material().specular = 0.3;
 
-	let light = PointLight::new(point::Point::new(-10.0, 10.0, -10.0), Color::new(1.0, 1.0, 1.0));
+	let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::new(1.0, 1.0, 1.0));
 
 	let world = World::new(
 		vec![

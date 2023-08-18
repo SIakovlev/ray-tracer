@@ -1,4 +1,7 @@
-use crate::{point::Point, shapes::shape::ConcreteShape, vector::Vector};
+use crate::{
+	primitives::{point::Point, vector::Vector},
+	shapes::shape::ConcreteShape,
+};
 
 #[derive(Debug)]
 pub struct IntersectionComputations<'a> {
@@ -33,12 +36,11 @@ pub fn hit<'a>(intersections: &'a mut Vec<Intersection<'a>>) -> Option<&Intersec
 mod tests {
 	use std::vec;
 
-	use super::{hit, Intersection};
+	use super::*;
 	use crate::{
 		matrix::matrix4d::Matrix4D,
-		point::Point,
+		primitives::{point::Point, transformations::*},
 		shapes::{shape::ConcreteShape, spheres::Sphere},
-		transformations::*,
 	};
 
 	#[test]

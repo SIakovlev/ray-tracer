@@ -1,4 +1,4 @@
-use crate::{point::Point, vector::Vector};
+use crate::primitives::{point::Point, vector::Vector};
 
 #[derive(Debug)]
 pub struct Projectile {

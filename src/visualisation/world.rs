@@ -1,11 +1,8 @@
 use crate::{
-	color::Color,
 	intersection::{hit, IntersectionComputations},
-	lights::PointLight,
-	point::Point,
-	ray::Ray,
+	primitives::{color::Color, point::Point, ray::Ray, transformations::*},
 	shapes::{shape::ConcreteShape, spheres::Sphere},
-	transformations::*,
+	visualisation::lights::PointLight,
 };
 
 // #[derive(Debug)]
@@ -105,16 +102,11 @@ impl Default for World {
 
 #[cfg(test)]
 mod tests {
-	use super::World;
+	use super::*;
 	use crate::{
-		color::Color,
 		intersection::Intersection,
-		lights::PointLight,
-		point::Point,
-		ray::Ray,
+		primitives::vector::Vector,
 		shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere},
-		transformations::translation,
-		vector::Vector,
 	};
 
 	#[test]

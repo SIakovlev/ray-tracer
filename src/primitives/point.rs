@@ -1,4 +1,4 @@
-use crate::{primitives::tuple::Tuple, vector::Vector};
+use crate::primitives::{tuple::Tuple, vector::Vector};
 use approx::{AbsDiffEq, RelativeEq};
 use std::ops::{Add, Sub};
 

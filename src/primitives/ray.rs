@@ -1,9 +1,8 @@
 use crate::{
 	intersection::{Intersection, IntersectionComputations},
 	matrix::matrix4d::Matrix4D,
-	point::Point,
-	vector::Vector,
-	world::World,
+	primitives::{point::Point, vector::Vector},
+	visualisation::world::World,
 };
 #[derive(Debug)]
 pub struct Ray {
@@ -68,8 +67,8 @@ impl<'a, 'b> Ray {
 mod tests {
 	use super::*;
 	use crate::{
+		primitives::transformations::*,
 		shapes::{shape::ConcreteShape, spheres::Sphere},
-		transformations::translation,
 	};
 
 	#[test]
@@ -84,7 +83,6 @@ mod tests {
 
 	#[test]
 	fn transform_test() {
-		use crate::transformations::*;
 		// translating a ray
 		let r1 = Ray::new(Point::new(1.0, 2.0, 3.0), Vector::new(0.0, 1.0, 0.0));
 		let t = translation(3.0, 4.0, 5.0);

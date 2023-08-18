@@ -2,10 +2,8 @@ use std::f64;
 
 use crate::{
 	intersection::Intersection,
-	point::Point,
-	ray::Ray,
+	primitives::{point::Point, ray::Ray, vector::Vector},
 	shapes::shape::{ConcreteShape, Shape},
-	vector::Vector,
 };
 
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -53,8 +51,8 @@ impl Default for Plane {
 
 #[cfg(test)]
 mod tests {
-	use super::Plane;
-	use crate::{point::Point, ray::Ray, shapes::shape::ConcreteShape, vector::Vector};
+	use super::*;
+	use crate::shapes::shape::ConcreteShape;
 
 	#[test]
 	fn test_normal_at() {

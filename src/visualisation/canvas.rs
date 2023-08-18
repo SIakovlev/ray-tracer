@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::primitives::color::Color;
 use std::{fs::File, io::Write};
 
 const MAX_PPM_LINE_WIDTH: usize = 70;
@@ -66,7 +66,7 @@ impl Canvas {
 #[cfg(test)]
 mod tests {
 
-	use crate::{canvas::Canvas, color::Color};
+	use super::*;
 
 	#[test]
 	fn sanity() {

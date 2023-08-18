@@ -1,11 +1,10 @@
 use crate::{
-	color::Color,
 	matrix::matrix4d::Matrix4D,
 	patterns::{
 		checker_pattern::CheckerPattern, gradient_pattern::GradientPattern,
 		ring_pattern::RingPattern, stripe_pattern::StripePattern, test_pattern::TestPattern,
 	},
-	point::Point,
+	primitives::{color::Color, point::Point},
 	shapes::shape::ConcreteShape,
 };
 use core::fmt::Debug;
@@ -101,12 +100,8 @@ pub trait Pattern {
 
 #[cfg(test)]
 mod tests {
-	use super::{ColorPattern, Pattern};
-	use crate::{
-		color::Color,
-		point::Point,
-		shapes::{shape::ConcreteShape, spheres::Sphere},
-	};
+	use super::*;
+	use crate::shapes::{shape::ConcreteShape, spheres::Sphere};
 
 	#[test]
 	fn test_stripe_pattern() {
@@ -136,7 +131,7 @@ mod tests {
 
 	#[test]
 	fn test_object_transformation() {
-		use crate::transformations::*;
+		use crate::primitives::transformations::*;
 
 		let mut s = Sphere::default();
 		s.set_transform(scaling(2.0, 2.0, 2.0));

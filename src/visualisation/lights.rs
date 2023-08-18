@@ -1,4 +1,4 @@
-use crate::{color::Color, point::Point};
+use crate::primitives::{color::Color, point::Point};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct PointLight {
@@ -14,8 +14,7 @@ impl PointLight {
 
 #[cfg(test)]
 mod tests {
-	use super::PointLight;
-	use crate::{color::Color, point::Point};
+	use super::*;
 
 	#[test]
 	fn initialisation() {

@@ -1,6 +1,8 @@
 use crate::{
-	color::Color, lights::PointLight, patterns::color_pattern::ColorPattern, point::Point,
-	shapes::shape::ConcreteShape, vector::Vector,
+	patterns::color_pattern::ColorPattern,
+	primitives::{color::Color, point::Point, vector::Vector},
+	shapes::shape::ConcreteShape,
+	visualisation::lights::PointLight,
 };
 use approx::{AbsDiffEq, RelativeEq};
 
@@ -109,15 +111,12 @@ impl RelativeEq for Material {
 
 #[cfg(test)]
 mod tests {
+	use super::*;
 	use crate::{
-		color::Color,
 		intersection::Intersection,
-		lights::PointLight,
 		patterns::color_pattern::ColorPattern,
-		point::Point,
-		ray::Ray,
+		primitives::ray::Ray,
 		shapes::{plane::Plane, spheres::Sphere},
-		vector::Vector,
 	};
 
 	use super::Material;
