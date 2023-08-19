@@ -32,11 +32,11 @@ impl World {
 	}
 
 	pub fn color_at(&self, ray: &Ray, remaining: Option<i32>) -> Result<Color, String> {
-		let mut xs = ray.intersect_world(self)?;
-		let hits = hit(&mut xs);
+		let xs = ray.intersect_world(self)?;
+		let hits = hit(&xs);
 		let color = match hits {
 			Some(intersection) => {
-				let comps = ray.prepare_computations(intersection);
+				let comps = ray.prepare_computations(&intersection, Some(&xs));
 				self.shade_hit(&comps, remaining)
 			},
 			_ => Color::new(0.0, 0.0, 0.0),
@@ -64,6 +64,20 @@ impl World {
 		color * comps.object.material().reflective
 	}
 
+	pub fn refracted_color(
+		&self,
+		comps: &IntersectionComputations,
+		remaining: Option<i32>,
+	) -> Color {
+		if remaining.unwrap_or(REFLECTION_RECURSION_THRESHOLD) == 0 {
+			return Color::new(0.0, 0.0, 0.0)
+		}
+		if comps.object.material().transparency == 0.0 {
+			return Color::new(0.0, 0.0, 0.0)
+		}
+		Color::new(1.0, 1.0, 1.0)
+	}
+
 	pub fn is_shadowed(&self, point: Point) -> Result<bool, String> {
 		let v = self.light.position - point;
 		let distance = v.magnitude();
@@ -71,15 +85,15 @@ impl World {
 
 		let r = Ray::new(point, direction);
 		let mut intersections = r.intersect_world(self)?;
-
-		match hit(&mut intersections) {
+		intersections.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+		match hit(&intersections) {
 			Some(h) =>
 				if h.t < distance {
-					return Ok(true)
+					Ok(true)
 				} else {
-					return Ok(false)
+					Ok(false)
 				},
-			None => return Ok(false),
+			None => Ok(false),
 		}
 	}
 }
@@ -136,7 +150,7 @@ mod tests {
 		let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
 		let w = World::default();
 		let i = Intersection::new(4.0, &*w.objects[0]);
-		let computations = r.prepare_computations(&i);
+		let computations = r.prepare_computations(&i, None);
 		let c = w.shade_hit(&computations, None);
 
 		approx::assert_relative_eq!(
@@ -149,7 +163,7 @@ mod tests {
 		let mut w = World::default();
 		w.light = PointLight::new(Point::new(0.0, 0.25, 0.0), Color::new(1.0, 1.0, 1.0));
 		let i = Intersection::new(0.5, &*w.objects[1]);
-		let computations = r.prepare_computations(&i);
+		let computations = r.prepare_computations(&i, None);
 		let c = w.shade_hit(&computations, None);
 
 		approx::assert_relative_eq!(c, Color::new(0.9049845, 0.9049845, 0.9049845), epsilon = 1e-6);
@@ -163,7 +177,7 @@ mod tests {
 		);
 		let r = Ray::new(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));
 		let i = Intersection::new(4.0, &*w.objects[1]);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		let c = w.shade_hit(&comps, None);
 
 		approx::assert_relative_eq!(c, Color::new(0.1, 0.1, 0.1));
@@ -227,7 +241,7 @@ mod tests {
 		let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
 		w.objects[1].get_material().ambient = 1.0;
 		let i = Intersection::new(1.0, &*w.objects[1]);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		let color = w.reflected_color(&comps, None);
 		assert_eq!(color, Color::new(0.0, 0.0, 0.0));
 
@@ -243,7 +257,7 @@ mod tests {
 			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
 		);
 		let i = Intersection::new(2.0_f64.sqrt(), &*w.objects[2]);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		let color = w.reflected_color(&comps, None);
 		approx::assert_relative_eq!(color, Color::new(0.19032, 0.2379, 0.14274), epsilon = 1e-4);
 
@@ -259,7 +273,7 @@ mod tests {
 			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
 		);
 		let i = Intersection::new(2.0_f64.sqrt(), &*w.objects[2]);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		let color = w.shade_hit(&comps, None);
 		approx::assert_relative_eq!(color, Color::new(0.87677, 0.92436, 0.82918), epsilon = 1e-4);
 

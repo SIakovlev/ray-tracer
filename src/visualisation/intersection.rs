@@ -9,10 +9,13 @@ pub struct IntersectionComputations<'a> {
 	pub object: &'a dyn ConcreteShape,
 	pub point: Point,
 	pub over_point: Point,
+	pub under_point: Point,
 	pub eye: Vector,
 	pub normal: Vector,
 	pub reflection_vector: Vector,
 	pub inside: bool,
+	pub n1: f64,
+	pub n2: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -27,8 +30,7 @@ impl<'a> Intersection<'a> {
 	}
 }
 
-pub fn hit<'a>(intersections: &'a mut Vec<Intersection<'a>>) -> Option<&Intersection<'a>> {
-	intersections.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+pub fn hit<'a>(intersections: &'a Vec<Intersection<'a>>) -> Option<&'a Intersection<'a>> {
 	intersections.iter().skip_while(|x| x.t < 0.0).next()
 }
 
@@ -49,21 +51,24 @@ mod tests {
 		let i1 = Intersection::new(1.0, &s);
 		let i2 = Intersection::new(2.0, &s);
 		let mut xs = vec![i1, i2];
-		let i = hit(&mut xs);
+		xs.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+		let i = hit(&xs);
 		assert_eq!(i.unwrap(), &i1);
 
 		// intersection where there is one point behind a ray
 		let i1 = Intersection::new(-1.0, &s);
 		let i2 = Intersection::new(1.0, &s);
 		let mut xs = vec![i1, i2];
-		let i = hit(&mut xs);
+		xs.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+		let i = hit(&xs);
 		assert_eq!(i.unwrap(), &i2);
 
 		// no intersections
 		let i1 = Intersection::new(-2.0, &s);
 		let i2 = Intersection::new(-1.0, &s);
 		let mut xs = vec![i1, i2];
-		let i = hit(&mut xs);
+		xs.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+		let i = hit(&xs);
 		assert!(i.is_none());
 
 		// more complex example
@@ -72,7 +77,8 @@ mod tests {
 		let i3 = Intersection::new(-3.0, &s);
 		let i4 = Intersection::new(2.0, &s);
 		let mut xs = vec![i1, i2, i3, i4];
-		let i = hit(&mut xs);
+		xs.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
+		let i = hit(&xs);
 		assert_eq!(i.unwrap(), &i4);
 	}
 

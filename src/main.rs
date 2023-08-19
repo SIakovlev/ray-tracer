@@ -75,9 +75,9 @@ fn sphere_shadow_example() {
 				Ok(value) => value,
 				Err(err) => panic!("{}", &err),
 			};
-
+			xs.sort_by(|i1, i2| (i1.t).partial_cmp(&i2.t).unwrap());
 			// check hits and depending on the result color corresponding pixels
-			match intersection::hit(&mut xs) {
+			match intersection::hit(&xs) {
 				Some(hit_value) => {
 					let point = r.position(hit_value.t);
 					let normal = hit_value.object.normal_at(point);

@@ -1,6 +1,7 @@
 use crate::{
 	intersection::{Intersection, IntersectionComputations},
 	primitives::{matrix::matrix4d::Matrix4D, point::Point, vector::Vector},
+	shapes::shape::ConcreteShape,
 	visualisation::world::World,
 };
 #[derive(Debug)]
@@ -32,6 +33,7 @@ impl<'a, 'b> Ray {
 	pub fn prepare_computations(
 		&self,
 		intersection: &'a Intersection,
+		xs: Option<&'a Vec<Intersection<'a>>>,
 	) -> IntersectionComputations<'a> {
 		let point = self.position(intersection.t);
 		let mut normal = intersection.object.normal_at(point);
@@ -45,15 +47,54 @@ impl<'a, 'b> Ray {
 
 		let reflection_vector = self.direction.reflect(normal);
 
+		let mut n1 = 1.0;
+		let mut n2 = 1.0;
+
+		match xs {
+			Some(intersections) => {
+				let mut container: Vec<&dyn ConcreteShape> = vec![];
+				for i in intersections {
+					if intersection == i {
+						if container.len() == 0 {
+							n1 = 1.0;
+						} else {
+							n1 = container.last().unwrap().material().refractive_index;
+						}
+					}
+
+					if container.contains(&i.object) {
+						let index = container.iter().position(|x| *x == i.object).unwrap();
+						container.remove(index);
+					} else {
+						container.push(i.object);
+					}
+
+					if intersection == i {
+						if container.len() == 0 {
+							n2 = 1.0;
+						} else {
+							n2 = container.last().unwrap().material().refractive_index;
+						}
+						break
+					}
+				}
+			},
+
+			None => n2 = intersection.object.material().refractive_index,
+		}
+
 		IntersectionComputations {
 			t: intersection.t,
 			object: intersection.object,
 			point,
 			over_point: point + normal * 1e-6,
+			under_point: point - normal * 1e-6,
 			eye,
 			normal,
 			reflection_vector,
 			inside,
+			n1,
+			n2,
 		}
 	}
 
@@ -107,7 +148,7 @@ mod tests {
 		let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
 		let s = Sphere::default();
 		let i = Intersection::new(4.0, &s);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 
 		assert_eq!(comps.inside, false);
 		assert_eq!(comps.t, i.t);
@@ -120,7 +161,7 @@ mod tests {
 		let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
 		let s = Sphere::default();
 		let i = Intersection::new(1.0, &s);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 
 		assert_eq!(comps.inside, true);
 		assert_eq!(comps.t, i.t);
@@ -134,7 +175,7 @@ mod tests {
 		let mut s = Sphere::default();
 		s.set_transform(translation(0.0, 0.0, 1.0));
 		let i = Intersection::new(5.0, &s);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		assert!(comps.over_point.tuple.z < -f64::EPSILON / 2.0);
 		assert!(comps.point.tuple.z > comps.over_point.tuple.z);
 	}
@@ -148,11 +189,60 @@ mod tests {
 		);
 		let s = Plane::default();
 		let i = Intersection::new(2.0_f64.sqrt(), &s);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 
 		assert_eq!(
 			comps.reflection_vector,
 			Vector::new(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)
 		);
+	}
+
+	#[test]
+	fn refraction_test() {
+		let mut a = Sphere::new_glass_sphere();
+		a.set_transform(scaling(2.0, 2.0, 2.0));
+		a.get_material().refractive_index = 1.5;
+
+		let mut b = Sphere::new_glass_sphere();
+		b.set_transform(translation(0.0, 0.0, -0.25));
+		b.get_material().refractive_index = 2.0;
+
+		let mut c = Sphere::new_glass_sphere();
+		c.set_transform(translation(0.0, 0.0, 0.25));
+		c.get_material().refractive_index = 2.5;
+
+		let r = Ray::new(Point::new(0.0, 0.0, -4.0), Vector::new(0.0, 0.0, 1.0));
+		let xs = vec![
+			Intersection::new(2.0, &a),
+			Intersection::new(2.75, &b),
+			Intersection::new(3.25, &c),
+			Intersection::new(4.75, &b),
+			Intersection::new(5.25, &c),
+			Intersection::new(6.0, &a),
+		];
+
+		let comps = r.prepare_computations(&xs[0], Some(&xs));
+		assert_eq!(comps.n1, 1.0);
+		assert_eq!(comps.n2, 1.5);
+
+		let comps = r.prepare_computations(&xs[1], Some(&xs));
+		assert_eq!(comps.n1, 1.5);
+		assert_eq!(comps.n2, 2.0);
+
+		let comps = r.prepare_computations(&xs[2], Some(&xs));
+		assert_eq!(comps.n1, 2.0);
+		assert_eq!(comps.n2, 2.5);
+
+		let comps = r.prepare_computations(&xs[3], Some(&xs));
+		assert_eq!(comps.n1, 2.5);
+		assert_eq!(comps.n2, 2.5);
+
+		let comps = r.prepare_computations(&xs[4], Some(&xs));
+		assert_eq!(comps.n1, 2.5);
+		assert_eq!(comps.n2, 1.5);
+
+		let comps = r.prepare_computations(&xs[5], Some(&xs));
+		assert_eq!(comps.n1, 1.5);
+		assert_eq!(comps.n2, 1.0);
 	}
 }

@@ -15,6 +15,8 @@ pub struct Material {
 	pub diffuse: f64,
 	pub specular: f64,
 	pub shininess: f64,
+	pub transparency: f64,
+	pub refractive_index: f64,
 }
 
 impl Material {
@@ -26,8 +28,20 @@ impl Material {
 		diffuse: f64,
 		specular: f64,
 		shininess: f64,
+		transparency: f64,
+		refractive_index: f64,
 	) -> Self {
-		Self { pattern, color, reflective, ambient, diffuse, specular, shininess }
+		Self {
+			pattern,
+			color,
+			reflective,
+			ambient,
+			diffuse,
+			specular,
+			shininess,
+			transparency,
+			refractive_index,
+		}
 	}
 
 	pub fn lighting(
@@ -75,6 +89,8 @@ impl Default for Material {
 			diffuse: 0.9,
 			specular: 0.9,
 			shininess: 200.0,
+			transparency: 0.0,
+			refractive_index: 1.0,
 		}
 	}
 }
@@ -206,7 +222,7 @@ mod tests {
 			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
 		);
 		let i = Intersection::new(2.0_f64.sqrt(), &p);
-		let comps = r.prepare_computations(&i);
+		let comps = r.prepare_computations(&i, None);
 		assert_eq!(
 			comps.reflection_vector,
 			Vector::new(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0)

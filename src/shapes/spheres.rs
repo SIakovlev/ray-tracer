@@ -15,6 +15,13 @@ impl Sphere {
 	pub fn new(origin: Point) -> Self {
 		Self { shape: Shape::new(origin) }
 	}
+
+	pub fn new_glass_sphere() -> Self {
+		let mut s = Self::new(Point::new(0.0, 0.0, 0.0));
+		s.shape.material.transparency = 1.0;
+		s.shape.material.refractive_index = 1.5;
+		s
+	}
 }
 
 impl ConcreteShape for Sphere {
