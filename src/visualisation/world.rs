@@ -5,7 +5,6 @@ use crate::{
 	visualisation::lights::PointLight,
 };
 
-// #[derive(Debug)]
 pub struct World {
 	pub objects: Vec<Box<dyn ConcreteShape>>,
 	pub light: PointLight,
@@ -28,7 +27,16 @@ impl World {
 			&comps.normal,
 			in_shadow,
 		);
-		surface + self.reflected_color(comps, remaining) + self.refracted_color(comps, remaining)
+		let reflected_color = self.reflected_color(comps, remaining);
+		let refracted_color = self.refracted_color(comps, remaining);
+
+		let material = comps.object.material();
+		if material.reflective > 0.0 && material.transparency > 0.0 {
+			let reflectance = comps.schlick();
+			surface + reflected_color * reflectance + refracted_color * (1.0 - reflectance)
+		} else {
+			surface + reflected_color + refracted_color
+		}
 	}
 
 	pub fn color_at(&self, ray: &Ray, remaining: Option<i32>) -> Result<Color, String> {
@@ -134,7 +142,7 @@ mod tests {
 	use super::*;
 	use crate::{
 		intersection::Intersection,
-		patterns::{color_pattern::ColorPattern, test_pattern},
+		patterns::color_pattern::ColorPattern,
 		primitives::vector::Vector,
 		shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere},
 	};
@@ -337,5 +345,33 @@ mod tests {
 		let comps = r.prepare_computations(&xs[2], Some(&xs));
 		let c = w.refracted_color(&comps, Some(5));
 		approx::assert_relative_eq!(c, Color::new(0.0, 0.99888, 0.04725), epsilon = 1e-4);
+	}
+
+	#[test]
+	fn test_shade_hit_w_transparent_material() {
+		let mut w = World::default();
+
+		let mut floor = Plane::default();
+		floor.set_transform(translation(0.0, -1.0, 0.0));
+		floor.get_material().transparency = 0.5;
+		floor.get_material().refractive_index = 1.5;
+
+		w.objects.push(Box::new(floor));
+
+		let mut ball = Sphere::default();
+		ball.get_material().color = Color::new(1.0, 0.0, 0.0);
+		ball.get_material().ambient = 0.5;
+		ball.set_transform(translation(0.0, -3.5, -0.5));
+
+		w.objects.push(Box::new(ball));
+
+		let r = Ray::new(
+			Point::new(0.0, 0.0, -3.0),
+			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+		);
+		let xs = vec![Intersection::new(2.0_f64.sqrt(), &*w.objects[2])];
+		let comps = r.prepare_computations(&xs[0], Some(&xs));
+		let color = w.shade_hit(&comps, Some(5));
+		approx::assert_relative_eq!(color, Color::new(0.93642, 0.68642, 0.68642), epsilon = 1e-4);
 	}
 }
