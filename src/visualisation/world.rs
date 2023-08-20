@@ -28,7 +28,7 @@ impl World {
 			&comps.normal,
 			in_shadow,
 		);
-		surface + self.reflected_color(comps, remaining)
+		surface + self.reflected_color(comps, remaining) + self.refracted_color(comps, remaining)
 	}
 
 	pub fn color_at(&self, ray: &Ray, remaining: Option<i32>) -> Result<Color, String> {
@@ -60,7 +60,7 @@ impl World {
 		let reflect_ray = Ray::new(comps.over_point, comps.reflection_vector);
 		let color = self
 			.color_at(&reflect_ray, Some(remaining.unwrap_or(REFLECTION_RECURSION_THRESHOLD) - 1))
-			.unwrap();
+			.expect("Could not compute reflected color");
 		color * comps.object.material().reflective
 	}
 
@@ -75,7 +75,22 @@ impl World {
 		if comps.object.material().transparency == 0.0 {
 			return Color::new(0.0, 0.0, 0.0)
 		}
-		Color::new(1.0, 1.0, 1.0)
+
+		// Snell's law
+		let ratio = comps.n1 / comps.n2;
+		let cos_i = comps.eye.dot(&comps.normal);
+		let sin2_t = ratio.powi(2) * (1.0 - cos_i.powi(2));
+		if sin2_t > 1.0 {
+			return Color::new(0.0, 0.0, 0.0)
+		}
+
+		let cos_t = (1.0 - sin2_t).sqrt();
+		let direction = comps.normal * (ratio * cos_i - cos_t) - comps.eye * ratio;
+		let refract_ray = Ray::new(comps.under_point, direction);
+		let color = self
+			.color_at(&refract_ray, Some(remaining.unwrap_or(REFLECTION_RECURSION_THRESHOLD) - 1))
+			.expect("Could not compute refracted color");
+		color * comps.object.material().transparency
 	}
 
 	pub fn is_shadowed(&self, point: Point) -> Result<bool, String> {
@@ -119,6 +134,7 @@ mod tests {
 	use super::*;
 	use crate::{
 		intersection::Intersection,
+		patterns::{color_pattern::ColorPattern, test_pattern},
 		primitives::vector::Vector,
 		shapes::{plane::Plane, shape::ConcreteShape, spheres::Sphere},
 	};
@@ -300,5 +316,26 @@ mod tests {
 		let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));
 		let _ = w.color_at(&r, None);
 		assert!(true);
+	}
+
+	#[test]
+	fn test_refracted_color() {
+		let mut w = World::default();
+		w.objects[0].get_material().ambient = 1.0;
+		w.objects[0].get_material().pattern = Some(ColorPattern::new_test());
+
+		w.objects[1].get_material().transparency = 1.0;
+		w.objects[1].get_material().refractive_index = 1.5;
+
+		let r = Ray::new(Point::new(0.0, 0.0, 0.1), Vector::new(0.0, 1.0, 0.0));
+		let xs = vec![
+			Intersection::new(-0.9899, &*w.objects[0]),
+			Intersection::new(-0.4899, &*w.objects[1]),
+			Intersection::new(0.4899, &*w.objects[1]),
+			Intersection::new(0.9899, &*w.objects[0]),
+		];
+		let comps = r.prepare_computations(&xs[2], Some(&xs));
+		let c = w.refracted_color(&comps, Some(5));
+		approx::assert_relative_eq!(c, Color::new(0.0, 0.99888, 0.04725), epsilon = 1e-4);
 	}
 }
