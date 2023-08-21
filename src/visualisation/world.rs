@@ -374,4 +374,58 @@ mod tests {
 		let color = w.shade_hit(&comps, Some(5));
 		approx::assert_relative_eq!(color, Color::new(0.93642, 0.68642, 0.68642), epsilon = 1e-4);
 	}
+
+	#[test]
+	fn test_schlick() {
+		// total_internal_reflection
+		let shape = Sphere::new_glass_sphere();
+		let r = Ray::new(Point::new(0.0, 0.0, 2.0_f64.sqrt() / 2.0), Vector::new(0.0, 1.0, 0.0));
+		let xs = vec![
+			Intersection::new(-2.0_f64.sqrt() / 2.0, &shape),
+			Intersection::new(2.0_f64.sqrt() / 2.0, &shape),
+		];
+		let comps = r.prepare_computations(&xs[1], Some(&xs));
+		assert_eq!(comps.schlick(), 1.0);
+
+		// perpendicular ray
+		let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));
+		let xs = vec![Intersection::new(-1.0, &shape), Intersection::new(1.0, &shape)];
+		let comps = r.prepare_computations(&xs[1], Some(&xs));
+		approx::assert_relative_eq!(comps.schlick(), 0.04, epsilon = 1e-4);
+
+		// tangential ray
+		let r = Ray::new(Point::new(0.0, 0.99, -2.0), Vector::new(0.0, 0.0, 1.0));
+		let xs = vec![Intersection::new(1.8589, &shape)];
+		let comps = r.prepare_computations(&xs[0], Some(&xs));
+		approx::assert_relative_eq!(comps.schlick(), 0.48873, epsilon = 1e-4);
+	}
+
+	#[test]
+	fn test_shade_hit_w_reflective_transparent_material() {
+		let mut w = World::default();
+
+		let mut floor = Plane::default();
+		floor.set_transform(translation(0.0, -1.0, 0.0));
+		floor.get_material().transparency = 0.5;
+		floor.get_material().reflective = 0.5;
+		floor.get_material().refractive_index = 1.5;
+
+		w.objects.push(Box::new(floor));
+
+		let mut ball = Sphere::default();
+		ball.get_material().color = Color::new(1.0, 0.0, 0.0);
+		ball.get_material().ambient = 0.5;
+		ball.set_transform(translation(0.0, -3.5, -0.5));
+
+		w.objects.push(Box::new(ball));
+
+		let r = Ray::new(
+			Point::new(0.0, 0.0, -3.0),
+			Vector::new(0.0, -2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0),
+		);
+		let xs = vec![Intersection::new(2.0_f64.sqrt(), &*w.objects[2])];
+		let comps = r.prepare_computations(&xs[0], Some(&xs));
+		let color = w.shade_hit(&comps, Some(5));
+		approx::assert_relative_eq!(color, Color::new(0.93391, 0.69643, 0.69243), epsilon = 1e-4);
+	}
 }
