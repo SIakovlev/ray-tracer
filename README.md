@@ -6,6 +6,8 @@ Simple Ray Tracer implementation written in Rust.
 
 The goal of the project is to learn/explore Rust, its ecosystem, and develop something new, complex and fun.
 
+![Sphere, cube and two planes. One of them is a mirror](./imgs/basic_shapes.jpg)
+
 ## Getting Started
 
 ### Tests
@@ -28,11 +30,8 @@ Use one of the following commands to build:
 ### TODO
 
 - More RT related stuff:
-  - Various patterns: stripes, checkers, etc.
   - More geometries: cubes, triangles, cylinders. Generalisation.
-  - Reflections
   - Complex/Solid geometries support
   - OBJ files
 - CLI
 - Parallel implementation w/ Rayen
-- Explore Rayon crate for parallel implementation

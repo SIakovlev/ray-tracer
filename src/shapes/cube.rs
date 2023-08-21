@@ -34,7 +34,12 @@ impl Cube {
 impl ConcreteShape for Cube {
 	#[allow(unused_variables)]
 	fn local_normal_at(&self, point: Point) -> Vector {
-		Vector::new(0.0, 1.0, 0.0)
+		let max = point.tuple.x.abs().max(point.tuple.y.abs()).max(point.tuple.z.abs());
+		match max {
+			p if p == point.tuple.x.abs() => Vector::new(point.tuple.x, 0.0, 0.0).normalise(),
+			p if p == point.tuple.y.abs() => Vector::new(0.0, point.tuple.y, 0.0).normalise(),
+			_ => Vector::new(0.0, 0.0, point.tuple.z).normalise(),
+		}
 	}
 
 	fn local_intersect<'i>(&'i self, ray: Ray) -> Result<Vec<Intersection<'i>>, String> {
@@ -74,7 +79,40 @@ mod tests {
 	use crate::shapes::shape::ConcreteShape;
 
 	#[test]
-	fn test_normal_at() {}
+	fn test_normal_at() {
+		let c = Cube::default();
+		let p = Point::new(1.0, 0.5, -0.8);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(1.0, 0.0, 0.0));
+
+		let p = Point::new(-1.0, -0.5, 0.9);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(-1.0, 0.0, 0.0));
+
+		let p = Point::new(-0.4, 1.0, -0.1);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(0.0, 1.0, 0.0));
+
+		let p = Point::new(0.3, -1.0, -0.7);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(0.0, -1.0, 0.0));
+
+		let p = Point::new(-0.6, 0.5, 1.0);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(0.0, 0.0, 1.0));
+
+		let p = Point::new(0.4, 0.4, -1.0);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(0.0, 0.0, -1.0));
+
+		let p = Point::new(1.0, 1.0, 1.0);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(1.0, 0.0, 0.0));
+
+		let p = Point::new(-1.0, -1.0, -1.0);
+		let normal = c.local_normal_at(p);
+		assert_eq!(normal, Vector::new(-1.0, 0.0, 0.0));
+	}
 
 	#[test]
 	fn test_intersections() {
@@ -135,5 +173,10 @@ mod tests {
 		assert_eq!(xs.len(), 2);
 		assert_eq!(xs[0].t, t1);
 		assert_eq!(xs[1].t, t2);
+
+		// miss
+		let r = Ray::new(Point::new(-2.0, 0.0, 0.0), Vector::new(0.2673, 0.5345, 0.8018));
+		let xs = c.local_intersect(r).unwrap();
+		assert_eq!(xs.len(), 0);
 	}
 }
