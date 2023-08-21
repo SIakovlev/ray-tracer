@@ -6,6 +6,8 @@ use crate::{
 	shapes::shape::{ConcreteShape, Shape},
 };
 
+use approx::RelativeEq;
+
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Cylinder {
 	shape: Shape,
@@ -109,8 +111,101 @@ mod tests {
 	use crate::shapes::shape::ConcreteShape;
 
 	#[test]
-	fn test_normal_at() {}
+	fn test_normal_at() {
+		// Basic normal
+		let c = Cylinder::default();
+		for (p, n) in vec![
+			(Point::new(1.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0)),
+			(Point::new(0.0, 5.0, -1.0), Vector::new(0.0, 0.0, -1.0)),
+			(Point::new(0.0, -2.0, 1.0), Vector::new(0.0, 0.0, 1.0)),
+			(Point::new(-1.0, 1.0, 0.0), Vector::new(-1.0, 0.0, 0.0)),
+		] {
+			assert_eq!(c.local_normal_at(p), n);
+		}
+
+		// Normal at the end caps
+		let c = Cylinder::new(Point::new(0.0, 0.0, 0.0), 2.0, 1.0, true);
+		for (p, n) in vec![
+			(Point::new(0.0, 1.0, 0.0), Vector::new(0.0, -1.0, 0.0)),
+			(Point::new(0.5, 1.0, 0.0), Vector::new(0.0, -1.0, 0.0)),
+			(Point::new(0.0, 1.0, 0.5), Vector::new(0.0, -1.0, 0.0)),
+			(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+			(Point::new(0.5, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+			(Point::new(0.0, 2.0, 0.5), Vector::new(0.0, 1.0, 0.0)),
+		] {
+			assert_eq!(c.local_normal_at(p), n);
+		}
+	}
 
 	#[test]
-	fn test_intersections() {}
+	fn test_intersections() {
+		// miss
+		let c = Cylinder::default();
+		for (o, d) in vec![
+			(Point::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+			(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+			(Point::new(0.0, 0.0, -5.0), Vector::new(1.0, 1.0, 1.0)),
+		] {
+			let r = Ray::new(o, d.normalise());
+			let xs = c.local_intersect(r).unwrap();
+			assert_eq!(xs.len(), 0);
+		}
+
+		// basic hits
+		for (o, d, t1, t2) in vec![
+			(Point::new(1.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0), 5.0, 5.0),
+			(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0), 4.0, 6.0),
+			(Point::new(0.5, 0.0, -5.0), Vector::new(0.1, 1.0, 1.0), 6.80798, 7.08872),
+		] {
+			let r = Ray::new(o, d.normalise());
+			let xs = c.local_intersect(r).unwrap();
+			assert_eq!(xs.len(), 2);
+			approx::assert_relative_eq!(xs[0].t, t1, epsilon = 1e-4);
+			approx::assert_relative_eq!(xs[1].t, t2, epsilon = 1e-4);
+		}
+
+		// truncated cylinder
+		let c = Cylinder::new(Point::new(0.0, 0.0, 0.0), 2.0, 1.0, false);
+		for (o, d, count) in vec![
+			(Point::new(0.0, 1.5, 0.0), Vector::new(0.1, 1.0, 0.0), 0),
+			(Point::new(0.0, 3.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 2.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 1.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 1.5, -2.0), Vector::new(0.0, 0.0, 1.0), 2),
+		] {
+			let r = Ray::new(o, d.normalise());
+			let xs = c.local_intersect(r).unwrap();
+			assert_eq!(xs.len(), count);
+		}
+
+		// truncated cylinder
+		let c = Cylinder::new(Point::new(0.0, 0.0, 0.0), 2.0, 1.0, false);
+		for (o, d, count) in vec![
+			(Point::new(0.0, 1.5, 0.0), Vector::new(0.1, 1.0, 0.0), 0),
+			(Point::new(0.0, 3.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 2.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 1.0, -5.0), Vector::new(0.0, 0.0, 1.0), 0),
+			(Point::new(0.0, 1.5, -2.0), Vector::new(0.0, 0.0, 1.0), 2),
+		] {
+			let r = Ray::new(o, d.normalise());
+			let xs = c.local_intersect(r).unwrap();
+			assert_eq!(xs.len(), count);
+		}
+
+		// closed cylinder
+		let c = Cylinder::new(Point::new(0.0, 0.0, 0.0), 2.0, 1.0, true);
+		for (o, d, count) in vec![
+			(Point::new(0.0, 3.0, 0.0), Vector::new(0.0, -1.0, 0.0), 2),
+			(Point::new(0.0, 3.0, -2.0), Vector::new(0.0, -1.0, 2.0), 2),
+			(Point::new(0.0, 4.0, -2.0), Vector::new(0.0, -1.0, 1.0), 2),
+			(Point::new(0.0, 0.0, -2.0), Vector::new(0.0, 1.0, 2.0), 2),
+			(Point::new(0.0, -1.0, -2.0), Vector::new(0.0, 1.0, 1.0), 2),
+		] {
+			let r = Ray::new(o, d.normalise());
+			let xs = c.local_intersect(r).unwrap();
+			assert_eq!(xs.len(), count);
+		}
+	}
 }
