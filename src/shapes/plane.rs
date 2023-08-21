@@ -24,14 +24,12 @@ impl ConcreteShape for Plane {
 	}
 
 	fn local_intersect<'i>(&'i self, ray: Ray) -> Result<Vec<Intersection<'i>>, String> {
-		let mut is = Vec::new();
-		if ray.direction.tuple.y.abs() < f64::EPSILON {
-			Ok(is)
-		} else {
+		let mut x = Vec::new();
+		if ray.direction.tuple.y.abs() >= f64::EPSILON {
 			let t = -ray.origin.tuple.y / ray.direction.tuple.y;
-			is.push(Intersection { t, object: self });
-			Ok(is)
+			x.push(Intersection { t, object: self });
 		}
+		Ok(x)
 	}
 
 	fn shape(&self) -> &Shape {
