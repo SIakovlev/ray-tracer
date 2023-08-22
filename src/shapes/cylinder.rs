@@ -6,8 +6,6 @@ use crate::{
 	shapes::shape::{ConcreteShape, Shape},
 };
 
-use approx::RelativeEq;
-
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Cylinder {
 	shape: Shape,

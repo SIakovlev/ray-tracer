@@ -20,7 +20,11 @@ impl Vector {
 	}
 
 	pub fn normalise(&self) -> Self {
-		*self / self.magnitude()
+		if self.magnitude() < f64::EPSILON {
+			*self
+		} else {
+			*self / self.magnitude()
+		}
 	}
 
 	pub fn dot(&self, rhs: &Vector) -> f64 {
